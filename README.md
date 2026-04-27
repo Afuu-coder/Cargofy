@@ -158,8 +158,9 @@ axon-app/
 ### AI & Cloud
 | Technology | Purpose |
 |-----------|---------|
-| **Google Gemini API** | AI risk explanation & intervention suggestions |
-| **Vertex AI** | Advanced ML model hosting |
+| **Google Gemini API** | AI risk scoring, intervention suggestions & alert generation |
+| **Gemma 2 (gemma-2-9b-it)** | Natural language risk explanations — 2-sentence ops briefing for dispatch leads, 1-sentence driver instruction (Vertex AI hosted; template fallback if unavailable) |
+| **Vertex AI** | Hosts Gemma 2 model for on-demand inference |
 | **Google ADK** | Agent Development Kit |
 | **Firebase Realtime DB** | Real-time telemetry sync |
 | **Google BigQuery** | Analytics data warehouse |
