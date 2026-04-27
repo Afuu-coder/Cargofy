@@ -1,0 +1,38 @@
+{
+  "name": "frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "api:test": "curl http://localhost:8000/health",
+    "api:shipments": "curl http://localhost:8000/api/v1/shipments"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "autoprefixer": "^10.5.0",
+    "postcss": "^8.5.9",
+    "tailwindcss": "^3.4.19",
+    "typescript": "~6.0.2",
+    "vite": "^8.0.4"
+  },
+  "dependencies": {
+    "@react-google-maps/api": "^2.20.8",
+    "@types/mapbox-gl": "^3.4.1",
+    "@types/react-router-dom": "^5.3.3",
+    "axios": "^1.15.0",
+    "dayjs": "^1.11.20",
+    "firebase": "^12.12.1",
+    "lucide-react": "^1.8.0",
+    "mapbox-gl": "^3.22.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "react-hot-toast": "^2.6.0",
+    "react-router-dom": "^7.14.1",
+    "recharts": "^3.8.1"
+  }
+}

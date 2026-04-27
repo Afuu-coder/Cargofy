@@ -1,0 +1,14 @@
+.gcloudignore
+.git
+.gitignore
+node_modules
+venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env
+.env.*
+secrets/
+shipments.json

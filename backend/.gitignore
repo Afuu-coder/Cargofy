@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+*.pyo
+.Python
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Database files
+*.db
+*.sqlite3
+
+# Environment files (use .env.example as template)
+.env
+.env.*
+!.env.example
+
+# Secrets
+secrets/
+
+# Test & scratch files
+test_state.py
+shipments.json
+snapshot.json
+
+# Deployment artifacts
+static/
+
+# IDE
+.vscode/
+.idea/
