@@ -1,5 +1,6 @@
 """
-Axon — FastAPI Application Entry Point
+Cargofy — FastAPI Application Entry Point
+AI-Powered Cold Chain Intelligence Platform
 Run with: uvicorn app.main:app --reload --port 8000
 """
 
@@ -16,7 +17,7 @@ from app.routers import (
     risk, explain, contact, facilities,
     control_tower, agent_scheduler, pubsub_push, wizard, tracking, iot_simulator,
     interventions, simulator, fleet, shipment_detail,
-    webhook, notification,
+    webhook, notification, ulip, rerouting,
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -30,9 +31,20 @@ Base.metadata.create_all(bind=engine)
 # ── App ──────────────────────────────────────────────────────────────────────
 
 app = FastAPI(
-    title="Axon Cold-Chain API",
-    description="AI-powered cold-chain logistics management platform",
-    version="1.0.0",
+    title="Cargofy Cold-Chain API",
+    description="""🚚 **Cargofy** — AI-Powered Autonomous Cold Chain Intelligence Platform
+
+**FAR AWAY 2026 Hackathon | Logistics & Transit Theme**
+
+Key Features:
+- 🤖 Autonomous Rerouting Agent (Google ADK + Gemini 2.0 Flash)
+- 📱 Free WhatsApp Alerts (CallMeBot API)
+- 🇮🇳 ULIP / PM Gati Shakti Integration (Vahan + Sarathi)
+- ⚡ Predictive Battery/AC Failure Detection
+- 🔗 Blockchain Audit Trail (Sepolia Testnet)
+- 📡 Real-time WebSocket Dashboard
+""",
+    version="2.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
 )
@@ -81,6 +93,10 @@ app.include_router(shipment_detail.router, prefix=f"{API_PREFIX}/shipments",    
 app.include_router(webhook.router,         prefix=f"{API_PREFIX}/webhook",         tags=["Webhooks"])
 app.include_router(notification.router,    prefix=f"{API_PREFIX}/notify",          tags=["Notifications"])
 
+# ── Cargofy New Feature Routers ───────────────────────────────────────────────
+app.include_router(ulip.router,       prefix=f"{API_PREFIX}/ulip",   tags=["🇮🇳 ULIP / PM Gati Shakti"])
+app.include_router(rerouting.router,  prefix=f"{API_PREFIX}/agent",  tags=["🤖 Autonomous Rerouting Agent"])
+
 # ── Health ───────────────────────────────────────────────────────────────────
 
 @app.get("/health", tags=["Health"])
@@ -89,16 +105,27 @@ def health():
     from app.core.config import settings as s
     return {
         "status": "ok",
-        "app": "Axon Cold-Chain API",
-        "version": "1.0.0",
+        "app": "Cargofy Cold-Chain API",
+        "version": "2.0.0",
+        "hackathon": "FAR AWAY 2026 — Logistics & Transit",
+        "new_features": [
+            "Autonomous Rerouting Agent (Google ADK)",
+            "ULIP / PM Gati Shakti Integration",
+            "CallMeBot Free WhatsApp Alerts",
+            "Predictive Battery/AC Failure Detection",
+            "WebSocket Real-time Dashboard",
+        ],
         "services": {
             "firebase_rtdb":    bool(s.FIREBASE_DB_URL),
             "bigquery":         bool(s.VERTEX_AI_PROJECT),
             "vertex_ai":        bool(s.VERTEX_AI_PROJECT),
             "pubsub":           bool(s.PUBSUB_PROJECT or s.VERTEX_AI_PROJECT),
+            "callmebot_wa":     bool(s.CALLMEBOT_API_KEY),
             "meta_whatsapp":    bool(s.META_WA_PHONE_NUMBER_ID),
             "twilio_whatsapp":  bool(s.TWILIO_ACCOUNT_SID),
             "mapbox":           bool(s.MAPBOX_API_KEY),
+            "google_maps":      bool(s.GOOGLE_MAPS_API_KEY),
+            "ulip_ready":       True,
             "redis":            cache_health(),
         }
     }
