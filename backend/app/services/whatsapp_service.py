@@ -1,4 +1,4 @@
-﻿"""
+"""
 Axon — WhatsApp Alert Service (Twilio)
 
 Builds formatted Hinglish WhatsApp messages and sends them via
@@ -114,72 +114,30 @@ def build_alert_message(
     return message
 
 
-# ── Twilio sender ──────────────────────────────────────────────────────────────
+# ── WhatsApp sender — uses CallMeBot (FREE, no Twilio needed) ─────────────────
 
 async def send_whatsapp_alert(to_phone: str, message: str) -> bool:
     """
-    Send a WhatsApp message via Twilio.
+    Send a WhatsApp alert message.
+
+    Primary: CallMeBot (free, no credit card, no Twilio account).
+    Setup:   https://www.callmebot.com/blog/free-api-whatsapp-messages/
 
     Args:
-        to_phone: Recipient phone in E.164 format e.g. "+919876543210"
-        message:  The message body (plain text / WhatsApp markdown)
+        to_phone: Recipient phone (used if CALLMEBOT_PHONE not set in env).
+        message:  The message body (plain text / WhatsApp markdown).
 
     Returns:
         True on success, False on any failure — never raises.
     """
-    sid   = settings.TWILIO_ACCOUNT_SID
-    token = settings.TWILIO_AUTH_TOKEN
-    from_ = settings.TWILIO_WHATSAPP_FROM or "whatsapp:+14155238886"
-
-    if not sid or not token:
-        logger.warning("Twilio credentials not set — WhatsApp alert skipped.")
-        return False
-
     try:
-        from twilio.rest import Client  # lazy import — not required if unused
-
-        loop = asyncio.get_event_loop()
-
-        async def _try_send(phone: str) -> str:
-            def _do():
-                client = Client(sid, token)
-                msg = client.messages.create(
-                    from_=from_,
-                    to=f"whatsapp:{phone}",
-                    body=message,
-                )
-                return msg.sid
-            return await loop.run_in_executor(None, _do)
-
-        # ── Try sending to the real number first ──────────────────────────────
-        try:
-            msg_sid = await _try_send(to_phone)
-            logger.info("WhatsApp sent → %s (sid=%s)", to_phone, msg_sid)
-            return True
-
-        except Exception as primary_exc:
-            err_str = str(primary_exc)
-            # Twilio sandbox error codes for unverified numbers: 63032, 63007
-            is_unverified = any(c in err_str for c in ["63032", "63007", "unverified", "not a participant"])
-
-            if is_unverified and settings.DEMO_PHONE_OVERRIDE and to_phone != settings.DEMO_PHONE_OVERRIDE:
-                # ── Fallback to demo phone ─────────────────────────────────────
-                logger.warning(
-                    "Number %s not in Twilio sandbox — falling back to demo phone %s",
-                    to_phone, settings.DEMO_PHONE_OVERRIDE,
-                )
-                # Prepend a note so viewer knows this is a redirect
-                redirected_msg = (
-                    f"[DEMO: Alert meant for {to_phone}]\n\n" + message
-                )
-                msg_sid = await _try_send(settings.DEMO_PHONE_OVERRIDE)
-                logger.info(
-                    "WhatsApp fallback sent → %s (sid=%s)", settings.DEMO_PHONE_OVERRIDE, msg_sid
-                )
-                return True
-            else:
-                raise  # re-raise for the outer handler
-
+        from app.services.callmebot_service import send_whatsapp_callmebot
+        ok = await send_whatsapp_callmebot(message)
+        if ok:
+            logger.info("WhatsApp alert sent via CallMeBot to configured number.")
+        else:
+            logger.warning("CallMeBot send returned False — check CALLMEBOT_API_KEY in .env")
+        return ok
     except Exception as exc:
-        logger.error("WhatsApp alert failed → %s: %s", to_phone, exc)
+        logger.error("WhatsApp alert failed: %s", exc)
         return False

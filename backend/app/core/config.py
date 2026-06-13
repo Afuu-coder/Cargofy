@@ -45,21 +45,8 @@ class Settings(BaseSettings):
     PUBSUB_VEHICLE_HEALTH_TOPIC: str   = "vehicle-health-alerts"
     PUBSUB_INTERVENTION_TOPIC: str     = "intervention-taken"
 
-    # ── Twilio ────────────────────────────────────────────────────────────────
-    TWILIO_ACCOUNT_SID: str = ""
-    TWILIO_AUTH_TOKEN: str = ""
-    TWILIO_WHATSAPP_FROM: str = "whatsapp:+14155238886"
-    # If set, ALL WhatsApp alerts go to this number (free Twilio sandbox demo mode)
-    DEMO_PHONE_OVERRIDE: str = ""
-
-    # ── Mapbox ───────────────────────────────────────────────────────────────
-    MAPBOX_API_KEY: str          = ""  # pk.eyJ1... public token
-    MAPBOX_SECRET_TOKEN: str     = ""  # sk.eyJ1... private token (server-side)
-
-    # ── Meta / WhatsApp Business ─────────────────────────────────────────────
-    META_WA_PHONE_NUMBER_ID: str = ""
-    META_WA_ACCESS_TOKEN: str    = ""
-    META_WA_WEBHOOK_VERIFY_TOKEN: str = "cargofy-wh-verify"
+    # ── Mapbox (public token for frontend 3D map) ──────────────────────────────
+    MAPBOX_API_KEY: str = ""  # pk.eyJ1... get free key at mapbox.com
 
     # ── CallMeBot (Free WhatsApp Alerts) ─────────────────────────────────────
     CALLMEBOT_API_KEY: str = ""   # From callmebot.com — free, no credit card
