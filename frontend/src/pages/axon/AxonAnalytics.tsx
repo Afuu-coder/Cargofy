@@ -189,16 +189,16 @@ function TabOverview({ summary, shipments, alerts, overview }: {
         </div>
       </div>
 
-      {/* With vs Without Axon */}
+      {/* With vs Without Cargofy */}
       <div className="bg-[#111827] border border-[#1E2530] rounded-2xl p-5">
-        <div className="text-sm font-bold text-[#F1F5F9] mb-4">📊 With vs. Without Axon (estimated)</div>
+        <div className="text-sm font-bold text-[#F1F5F9] mb-4">📊 With vs. Without Cargofy (estimated)</div>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-[#1E2530]">
                 <th className="text-left py-2 px-3 text-[#64748B] font-semibold">Metric</th>
-                <th className="text-center py-2 px-3 text-[#4DD9AC] font-semibold">WITH Axon</th>
-                <th className="text-center py-2 px-3 text-[#EF4444] font-semibold">WITHOUT Axon</th>
+                <th className="text-center py-2 px-3 text-[#4DD9AC] font-semibold">WITH Cargofy</th>
+                <th className="text-center py-2 px-3 text-[#EF4444] font-semibold">WITHOUT Cargofy</th>
                 <th className="text-center py-2 px-3 text-[#FBBF24] font-semibold">Difference</th>
               </tr>
             </thead>
@@ -295,7 +295,7 @@ function TabOperations({ alerts, operations, drivers }: {
               </div>
             ))}
             <div className="text-[10px] text-[#64748B] pt-2 border-t border-[#1E2530]">
-              Industry benchmark: ~28 min avg response. Axon: 4.2 min. <span className="text-[#34D399] font-bold">-85% faster.</span>
+              Industry benchmark: ~28 min avg response. Cargofy AI: 4.2 min. <span className="text-[#34D399] font-bold">-85% faster.</span>
             </div>
           </div>
         </div>
@@ -1048,7 +1048,7 @@ export function AxonAnalytics() {
       if (res.download_url) {
         const a = document.createElement('a');
         a.href = res.download_url;
-        a.download = `axon_${type.toLowerCase()}_${period}.csv`;
+        a.download = `cargofy_${type.toLowerCase()}_${period}.csv`;
         a.click();
       }
     } catch (e) {

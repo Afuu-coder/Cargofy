@@ -1,5 +1,5 @@
 """
-Axon — Sensor Router
+Cargofy — Sensor Router
 POST /api/v1/shipments/{id}/sensor — accept a sensor reading,
 store it, then automatically run risk computation and persist
 the result as a risk_event.
@@ -8,7 +8,7 @@ For HIGH / CRITICAL risk:
   - Calls Google Maps Places to find nearby cold-storage / mandis
   - Passes the nearest facility to Gemini for a contextual Hinglish explanation
   - Stores both in the risk_event row
-  - Sends a WhatsApp alert to the shipment owner via Twilio
+  - Sends a WhatsApp alert to the shipment owner via CallMeBot (FREE)
 """
 
 import asyncio

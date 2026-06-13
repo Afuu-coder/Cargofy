@@ -1,16 +1,16 @@
 """
-Axon — Notification Router (axon-notification-svc)
+Cargofy — Notification Router
 
-Handles multi-channel outbound notifications:
+Handles outbound notifications:
+  - WhatsApp → CallMeBot (FREE, primary channel)
   - Firebase Cloud Messaging (FCM) → Push notifications to drivers/dispatchers
-  - SMS → Twilio SMS fallback when WhatsApp is unavailable
-  - In-app → Notification badge state via RTDB
+  - Bulk → Broadcast push to all active drivers
 
 Endpoints:
-  POST /notify/push        → Send FCM push to one or many tokens
-  POST /notify/sms         → Send Twilio SMS
-  POST /notify/bulk        → Bulk notify all active drivers
-  GET  /notify/channels    → Health check all notification channels
+  POST /notify/whatsapp    -> Send WhatsApp via CallMeBot
+  POST /notify/push        -> Send FCM push notification
+  POST /notify/bulk        -> Bulk push to all active drivers
+  GET  /notify/channels    -> Health check all notification channels
 """
 from __future__ import annotations
 
@@ -29,24 +29,51 @@ router = APIRouter()
 
 # ── Schemas ───────────────────────────────────────────────────────────────────
 
+class WhatsAppRequest(BaseModel):
+    message: str
+    shipment_id: Optional[str] = None
+    alert_id:    Optional[str] = None
+
 class PushRequest(BaseModel):
     fcm_tokens: List[str]
-    title: str
-    body: str
-    data: Optional[dict] = None
-    priority: str = "high"  # high | normal
-
-class SMSRequest(BaseModel):
-    to: str                  # E.164 format: +919876543210
-    body: str
-    shipment_id: Optional[str] = None
-    alert_id: Optional[str] = None
+    title:    str
+    body:     str
+    data:     Optional[dict] = None
+    priority: str = "high"   # high | normal
 
 class BulkNotifyRequest(BaseModel):
-    title: str
-    body: str
-    filter_status: str = "ACTIVE"  # Notify all ACTIVE drivers by default
-    data: Optional[dict] = None
+    title:         str
+    body:          str
+    filter_status: str = "ACTIVE"
+    data:          Optional[dict] = None
+
+
+# ── WhatsApp via CallMeBot (PRIMARY channel) ──────────────────────────────────
+
+@router.post("/whatsapp", summary="Send WhatsApp alert via CallMeBot (FREE)")
+async def send_whatsapp(body: WhatsAppRequest):
+    """
+    Send a WhatsApp message via CallMeBot.
+    Free setup: https://www.callmebot.com/blog/free-api-whatsapp-messages/
+    Requires CALLMEBOT_API_KEY + CALLMEBOT_PHONE in .env
+    """
+    from app.services.callmebot_service import send_whatsapp_callmebot
+    ok = await send_whatsapp_callmebot(body.message)
+
+    if body.alert_id and body.shipment_id:
+        publish_alert_event(
+            alert_id=body.alert_id,
+            shipment_id=body.shipment_id,
+            alert_type="WHATSAPP_SENT",
+            status="sent" if ok else "failed",
+            channel="whatsapp_callmebot",
+            recipient=settings.CALLMEBOT_PHONE or "configured_number",
+        )
+
+    if not ok:
+        raise HTTPException(502, "WhatsApp send failed — check CALLMEBOT_API_KEY in .env")
+
+    return {"ok": True, "channel": "callmebot", "phone": settings.CALLMEBOT_PHONE}
 
 
 # ── FCM Push ─────────────────────────────────────────────────────────────────
@@ -56,16 +83,16 @@ async def send_push(body: PushRequest):
     """
     Send Firebase Cloud Messaging push to one or many devices.
     Used for:
-    - CRITICAL risk alerts → red banner on driver app
-    - Stage updates → new stop confirmation
-    - Ops manager alerts → high-risk shipment warnings
+      - CRITICAL risk alerts  -> red banner on driver app
+      - Stage updates         -> new stop confirmation
+      - Ops alerts            -> high-risk shipment warnings
     """
     results = []
     for token in body.fcm_tokens:
         result = await _send_fcm(token, body.title, body.body, body.data, body.priority)
         results.append({"token": token[:20] + "...", "ok": result.get("ok", False)})
 
-    sent = sum(1 for r in results if r["ok"])
+    sent   = sum(1 for r in results if r["ok"])
     failed = len(results) - sent
     return {"sent": sent, "failed": failed, "results": results}
 
@@ -101,64 +128,14 @@ async def _send_fcm(
         return {"ok": False, "error": str(exc)}
 
 
-# ── SMS via Twilio ────────────────────────────────────────────────────────────
-
-@router.post("/sms", summary="Send SMS via Twilio")
-async def send_sms(body: SMSRequest):
-    """
-    Send SMS fallback when WhatsApp delivery fails.
-    Used for: critical alerts when driver has no WhatsApp
-    """
-    result = await _send_twilio_sms(body.to, body.body)
-
-    if body.alert_id and body.shipment_id:
-        publish_alert_event(
-            alert_id=body.alert_id,
-            shipment_id=body.shipment_id,
-            alert_type="SMS_SENT",
-            status="sent" if result["ok"] else "failed",
-            channel="sms",
-            recipient=body.to,
-        )
-
-    if not result["ok"]:
-        raise HTTPException(502, f"SMS failed: {result.get('error')}")
-
-    return result
-
-
-async def _send_twilio_sms(to: str, message: str) -> dict:
-    """Send SMS via Twilio REST API."""
-    if not settings.TWILIO_ACCOUNT_SID or not settings.TWILIO_AUTH_TOKEN:
-        logger.warning("Twilio not configured — SMS disabled")
-        return {"ok": False, "error": "twilio_not_configured"}
-
-    to_number = settings.DEMO_PHONE_OVERRIDE or to
-
-    try:
-        from twilio.rest import Client
-        client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-        msg = client.messages.create(
-            from_=settings.TWILIO_WHATSAPP_FROM.replace("whatsapp:", ""),
-            to=to_number,
-            body=message,
-        )
-        logger.info("Twilio SMS sent to %s: SID=%s", to_number, msg.sid)
-        return {"ok": True, "sid": msg.sid, "status": msg.status}
-    except Exception as exc:
-        logger.error("Twilio SMS failed to %s: %s", to_number, exc)
-        return {"ok": False, "error": str(exc)}
-
-
 # ── Bulk notify ───────────────────────────────────────────────────────────────
 
-@router.post("/bulk", summary="Bulk notify all drivers matching a filter")
+@router.post("/bulk", summary="Bulk push to all drivers matching a filter")
 async def bulk_notify(body: BulkNotifyRequest):
     """
     Send push notifications to all drivers with a given status.
     E.g.: broadcast a network-wide weather warning to all ACTIVE drivers.
     """
-    # Fetch active drivers from Firestore/mock
     from app.routers.fleet import _list_drivers
     drivers = _list_drivers(status=body.filter_status)
 
@@ -181,23 +158,13 @@ async def bulk_notify(body: BulkNotifyRequest):
 def channel_health():
     """Returns configuration status for each notification channel."""
     return {
-        "fcm": {
-            "configured": True,  # FCM uses Firebase Admin SDK — always available if SA is set
-            "status": "ok",
+        "whatsapp_callmebot": {
+            "configured": bool(settings.CALLMEBOT_API_KEY and settings.CALLMEBOT_PHONE),
+            "phone":       settings.CALLMEBOT_PHONE or None,
+            "status":      "ok" if settings.CALLMEBOT_API_KEY else "not_configured — set CALLMEBOT_API_KEY in .env",
         },
-        "whatsapp_meta": {
-            "configured": bool(settings.META_WA_PHONE_NUMBER_ID and settings.META_WA_ACCESS_TOKEN),
-            "phone_number_id": settings.META_WA_PHONE_NUMBER_ID[:8] + "..." if settings.META_WA_PHONE_NUMBER_ID else None,
-            "status": "ok" if settings.META_WA_PHONE_NUMBER_ID else "not_configured",
-        },
-        "whatsapp_twilio": {
-            "configured": bool(settings.TWILIO_ACCOUNT_SID and settings.TWILIO_AUTH_TOKEN),
-            "from": settings.TWILIO_WHATSAPP_FROM,
-            "demo_override": settings.DEMO_PHONE_OVERRIDE or None,
-            "status": "ok" if settings.TWILIO_ACCOUNT_SID else "not_configured",
-        },
-        "sms": {
-            "configured": bool(settings.TWILIO_ACCOUNT_SID),
-            "status": "ok" if settings.TWILIO_ACCOUNT_SID else "not_configured",
+        "fcm_push": {
+            "configured": True,   # Uses Firebase Admin SDK — available if service account is set
+            "status":     "ok",
         },
     }

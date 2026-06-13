@@ -181,7 +181,7 @@ export function ActiveShipments() {
       .concat(rows.map(s => `${s.shipment_code},${s.product_type},${s.origin||''},${s.destination||''},${getRisk(s)},${s.status}`))
       .join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'axon_shipments.csv'; a.click();
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'cargofy_shipments.csv'; a.click();
     addToast('Exported as CSV');
   }
 

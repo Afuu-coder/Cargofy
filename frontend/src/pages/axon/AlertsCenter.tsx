@@ -145,7 +145,7 @@ const TEMPLATE_ALERTS = [
 
 const TEMPLATES = [
   { id:'tpl1', icon:'🌡', name:'Temperature Excursion', product:'Dairy',
-    body:'⚠️ URGENT: Your cargo is above safe temperature.\nCurrent: {temp}°C — Safe max: {safe_max}°C.\nPlease check reefer immediately.\nAxon ID: {shipment_id}',
+    body:'⚠️ URGENT: Your cargo is above safe temperature.\nCurrent: {temp}°C — Safe max: {safe_max}°C.\nPlease check reefer immediately.\nCargofy ID: {shipment_id}',
     vars:['{temp}','{safe_max}','{shipment_id}'], default:true },
   { id:'tpl2', icon:'⏱', name:'Transit Delay — SLA Warning', product:'All',
     body:'📍 Update: Your shipment {shipment_id} is delayed by {delay_min} min.\nCurrent ETA: {eta}.\nPlease update route if possible.',

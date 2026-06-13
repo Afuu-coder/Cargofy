@@ -551,7 +551,7 @@ export function CreateShipmentBasics() {
                 </div>
               </div>
               <div className="mt-3 bg-[#0F1F17] border border-[#1A3D2B] rounded p-3">
-                <div className="text-[10px] text-[#4DD9AC] font-semibold mb-1 flex items-center gap-1">💡 Axon Insight</div>
+                <div className="text-[10px] text-[#4DD9AC] font-semibold mb-1 flex items-center gap-1">💡 Cargofy AI Insight</div>
                 <div className="text-[11px] text-[#94A3B8] leading-relaxed">
                   {form.productType === 'dairy' ? 'Dairy shipments on this route had 3 excursions in 7 days. Consider night dispatch or tighter band.' : 'Set up IoT monitoring for real-time breach detection on this route.'}
                 </div>
@@ -561,7 +561,7 @@ export function CreateShipmentBasics() {
             {/* AI dispatch suggestion */}
             {form.pickupTime && parseInt(form.pickupTime) >= 9 && (
               <div className="bg-[#0F1A2E] border border-[#1E3A5F] rounded-lg p-4">
-                <div className="text-[10px] text-[#60A5FA] font-semibold mb-2 flex items-center gap-1">💡 Axon Suggests</div>
+                <div className="text-[10px] text-[#60A5FA] font-semibold mb-2 flex items-center gap-1">💡 Cargofy AI Suggests</div>
                 <div className="text-[11px] text-[#94A3B8] leading-relaxed mb-3">
                   Dispatch before 07:00 to avoid peak congestion. Current time ({form.pickupTime}) may add +28 min delay.
                 </div>
