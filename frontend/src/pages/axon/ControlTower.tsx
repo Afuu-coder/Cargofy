@@ -351,6 +351,15 @@ export function ControlTower() {
           )}
         </button>
 
+        {/* 3D Fleet View button */}
+        <button
+          onClick={() => navigate('/fleet-3d')}
+          className="hidden lg:flex items-center gap-1.5 bg-[#6366F1]/10 border border-[#6366F1]/30 text-[#818CF8] font-bold text-xs px-3 py-2 rounded hover:bg-[#6366F1]/20 active:scale-95 transition-all"
+        >
+          <span>🌐</span>
+          <span>3D Fleet View</span>
+        </button>
+
         {/* Team */}
         <div className="hidden lg:flex items-center gap-2 bg-[#10131B] border border-[#1E2530] rounded px-3 py-1.5 text-xs text-[#94A3B8] cursor-pointer hover:border-[#4DD9AC]/40 transition-colors">
           <span>⚙</span>

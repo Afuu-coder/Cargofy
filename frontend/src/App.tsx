@@ -26,6 +26,7 @@ import { LiveTracking }         from './pages/axon/LiveTracking';
 import { RiskInterventions }    from './pages/axon/RiskInterventions';
 import { ShipmentDetailAxon }   from './pages/axon/ShipmentDetailAxon';
 import { ShipmentLaunched }     from './pages/axon/ShipmentLaunched';
+import { Fleet3DView }          from './pages/axon/Fleet3DView';
 
 /* ── Auth guard ──────────────────────────────────────────────────────────────── */
 const isAuthed = () => localStorage.getItem('cargofy_authed') === 'true';
@@ -89,6 +90,8 @@ function App() {
         <Route path="/shipment-detail"        element={<ProtectedRoute><ShipmentDetailAxon /></ProtectedRoute>} />
         <Route path="/shipments/:id"          element={<ProtectedRoute><ShipmentDetailAxon /></ProtectedRoute>} />
         <Route path="/shipment-launched"      element={<ProtectedRoute><ShipmentLaunched /></ProtectedRoute>} />
+        <Route path="/fleet-3d"               element={<ProtectedRoute><Fleet3DView /></ProtectedRoute>} />
+        <Route path="/3d-map"                 element={<ProtectedRoute><Fleet3DView /></ProtectedRoute>} />
 
         {/* ── Catch-all ─────────────────────────────────────────────────────── */}
         <Route path="*" element={<Navigate to={isAuthed() ? '/dashboard' : '/'} replace />} />
