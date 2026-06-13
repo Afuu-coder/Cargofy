@@ -1,5 +1,6 @@
 """
-Application configuration using pydantic-settings.
+Cargofy — Application Configuration
+AI-Powered Cold Chain Intelligence Platform
 Reads from environment variables / .env file.
 """
 
@@ -14,7 +15,7 @@ class Settings(BaseSettings):
     BACKEND_URL:  str = ""  # Cloud Run URL for Cloud Tasks callbacks
 
     # ── Database ──────────────────────────────────────────────────────────────
-    DATABASE_URL: str = "postgresql://axon:axon_dev_password@localhost:5432/axon_db"
+    DATABASE_URL: str = "postgresql://cargofy:cargofy_dev_password@localhost:5432/cargofy_db"
 
     # ── Security ──────────────────────────────────────────────────────────────
     SECRET_KEY: str = "change-me-in-production"
@@ -28,10 +29,10 @@ class Settings(BaseSettings):
 
     # ── Firebase ─────────────────────────────────────────────────────────────
     FIREBASE_SERVICE_ACCOUNT_PATH: str = "./secrets/firebase_service_account.json"
-    FIREBASE_DB_URL: str = ""  # e.g. https://axon-493411-default-rtdb.firebaseio.com
+    FIREBASE_DB_URL: str = ""  # e.g. https://cargofy-default-rtdb.firebaseio.com
 
     # ── BigQuery ─────────────────────────────────────────────────────────────
-    BIGQUERY_DATASET: str = "axon_ops"
+    BIGQUERY_DATASET: str = "cargofy_ops"
 
     # ── Pub/Sub ──────────────────────────────────────────────────────────────
     PUBSUB_PROJECT: str = ""  # GCP project ID for Pub/Sub
@@ -58,17 +59,26 @@ class Settings(BaseSettings):
     # ── Meta / WhatsApp Business ─────────────────────────────────────────────
     META_WA_PHONE_NUMBER_ID: str = ""
     META_WA_ACCESS_TOKEN: str    = ""
-    META_WA_WEBHOOK_VERIFY_TOKEN: str = "axon-wh-verify"
+    META_WA_WEBHOOK_VERIFY_TOKEN: str = "cargofy-wh-verify"
+
+    # ── CallMeBot (Free WhatsApp Alerts) ─────────────────────────────────────
+    CALLMEBOT_API_KEY: str = ""   # From callmebot.com — free, no credit card
+    CALLMEBOT_PHONE: str  = ""    # Your WhatsApp number e.g. +919876543210
+
+    # ── ULIP / Govt APIs (mock for demo) ────────────────────────────────────
+    ULIP_API_KEY: str = ""        # Unified Logistics Interface Platform key
+    VAHAN_API_KEY: str = ""       # Vehicle registration lookup (mock)
+    SARATHI_API_KEY: str = ""     # Driver license lookup (mock)
 
     # ── Redis / Memorystore ──────────────────────────────────────────────────
     REDIS_URL: str = ""  # redis://10.x.x.x:6379  (Cloud Memorystore)
 
     # ── Cloud Storage ────────────────────────────────────────────────────────
-    GCS_EXPORTS_BUCKET: str = "axon-exports"
-    GCS_MEDIA_BUCKET: str   = "axon-media"
+    GCS_EXPORTS_BUCKET: str = "cargofy-exports"
+    GCS_MEDIA_BUCKET: str   = "cargofy-media"
 
     # ── Cloud Tasks ──────────────────────────────────────────────────────────
-    CLOUD_TASKS_QUEUE: str    = "axon-tasks"
+    CLOUD_TASKS_QUEUE: str    = "cargofy-tasks"
     CLOUD_TASKS_LOCATION: str = "asia-south1"
 
     # ── External APIs ─────────────────────────────────────────────────────────
