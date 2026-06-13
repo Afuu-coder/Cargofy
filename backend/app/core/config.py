@@ -84,6 +84,13 @@ class Settings(BaseSettings):
     # ── External APIs ─────────────────────────────────────────────────────────
     OPENWEATHER_API_KEY: str = ""
 
+    # ── Blockchain — Ethereum Sepolia Testnet ────────────────────────────
+    # Get free RPC from https://www.alchemy.com (free tier)
+    # Get free Sepolia ETH from https://sepoliafaucet.com
+    BLOCKCHAIN_RPC_URL: str           = ""  # https://eth-sepolia.g.alchemy.com/v2/KEY
+    BLOCKCHAIN_PRIVATE_KEY: str       = ""  # 0x... (Sepolia TEST wallet only!)
+    BLOCKCHAIN_CONTRACT_ADDRESS: str  = ""  # 0x... (deployed CargofyShipmentAudit.sol)
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

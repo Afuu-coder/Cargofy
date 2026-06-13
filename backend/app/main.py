@@ -17,7 +17,7 @@ from app.routers import (
     risk, explain, contact, facilities,
     control_tower, agent_scheduler, pubsub_push, wizard, tracking, iot_simulator,
     interventions, simulator, fleet, shipment_detail,
-    webhook, notification, ulip, rerouting,
+    webhook, notification, ulip, rerouting, blockchain,
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -94,8 +94,9 @@ app.include_router(webhook.router,         prefix=f"{API_PREFIX}/webhook",      
 app.include_router(notification.router,    prefix=f"{API_PREFIX}/notify",          tags=["Notifications"])
 
 # ── Cargofy New Feature Routers ───────────────────────────────────────────────
-app.include_router(ulip.router,       prefix=f"{API_PREFIX}/ulip",   tags=["🇮🇳 ULIP / PM Gati Shakti"])
-app.include_router(rerouting.router,  prefix=f"{API_PREFIX}/agent",  tags=["🤖 Autonomous Rerouting Agent"])
+app.include_router(ulip.router,        prefix=f"{API_PREFIX}/ulip",        tags=["ULIP / PM Gati Shakti"])
+app.include_router(rerouting.router,   prefix=f"{API_PREFIX}/agent",       tags=["Autonomous Rerouting Agent"])
+app.include_router(blockchain.router,  prefix=f"{API_PREFIX}/blockchain",   tags=["Blockchain Audit Trail"])
 
 # ── Health ───────────────────────────────────────────────────────────────────
 
