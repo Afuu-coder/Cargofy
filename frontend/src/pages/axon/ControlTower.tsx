@@ -83,12 +83,41 @@ export function ControlTower() {
   const [mapFilter, setMapFilter] = useState<'all' | 'critical' | 'delayed'>('all');
   const [aiDismissed, setAiDismissed] = useState<string[]>([]);
   const [toasts, setToasts] = useState<Array<{ id: string; msg: string; type: 'ok' | 'warn' }>>([]);
+  const [crisisLoading, setCrisisLoading] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval>>(undefined);
 
   const addToast = (msg: string, type: 'ok' | 'warn' = 'ok') => {
     const id = Math.random().toString(36).slice(2);
     setToasts(t => [...t, { id, msg, type }]);
     setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3500);
+  };
+
+  // ── Simulate Crisis (Demo button) ──────────────────────────────────────────
+  const simulateCrisis = async (scenario: string = 'battery_failure') => {
+    setCrisisLoading(true);
+    addToast(`Triggering ${scenario} scenario...`, 'warn');
+    try {
+      const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+      const res = await fetch(`${API}/api/v1/agent/simulate-critical`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scenario,
+          shipment_id: filtered[0]?.shipment_code || 'SHP-DEMO-001',
+          product_type: filtered[0]?.product_type || 'milk',
+        }),
+      });
+      const data = await res.json();
+      if (data.agent_result?.should_reroute) {
+        addToast(`CARGOFY AGENT: Rerouting to ${data.agent_result?.nearest_facility?.name || 'nearest cold hub'}`, 'warn');
+      } else {
+        addToast('Agent assessed risk — no reroute needed', 'ok');
+      }
+    } catch {
+      addToast('Demo mode: Agent triggered (backend offline)', 'warn');
+    } finally {
+      setCrisisLoading(false);
+    }
   };
 
   // ── Fetch data ─────────────────────────────────────────────────────────────
@@ -286,7 +315,7 @@ export function ControlTower() {
       <header className="shrink-0 h-14 bg-[#0A0D14] border-b border-[#1E2530] flex items-center px-4 gap-4 z-40">
         {/* Logo */}
         <div className="text-[#4DD9AC] font-black text-xl tracking-tighter font-mono shrink-0 cursor-pointer" onClick={() => navigate('/dashboard')}>
-          AXON
+        CARGOFY
         </div>
 
         {/* Search */}
@@ -325,8 +354,38 @@ export function ControlTower() {
         {/* Team */}
         <div className="hidden lg:flex items-center gap-2 bg-[#10131B] border border-[#1E2530] rounded px-3 py-1.5 text-xs text-[#94A3B8] cursor-pointer hover:border-[#4DD9AC]/40 transition-colors">
           <span>⚙</span>
-          <span>Axon Ops — Northeast India</span>
+          <span>Cargofy Ops — India</span>
           <span>▾</span>
+        </div>
+
+        {/* 🚨 DEMO: Simulate Crisis Button */}
+        <div className="relative group">
+          <button
+            onClick={() => simulateCrisis('battery_failure')}
+            disabled={crisisLoading}
+            className="shrink-0 bg-[#EF4444]/10 border border-[#EF4444]/40 text-[#F87171] font-bold text-xs px-3 py-2 rounded hover:bg-[#EF4444]/20 active:scale-95 transition-all flex items-center gap-1.5 disabled:opacity-50"
+          >
+            {crisisLoading ? (
+              <span className="animate-spin">⏳</span>
+            ) : (
+              <span>🚨</span>
+            )}
+            <span className="hidden sm:inline">{crisisLoading ? 'Agent Running...' : 'Simulate Crisis'}</span>
+          </button>
+          {/* Dropdown */}
+          <div className="absolute right-0 top-10 hidden group-hover:block bg-[#0D1117] border border-[#1E2530] rounded-lg shadow-2xl py-1 min-w-[180px] z-50">
+            {[
+              { label: '⚡ Battery Failure', s: 'battery_failure' },
+              { label: '🌡️ Temp Spike', s: 'temp_spike' },
+              { label: '🚪 Door Tamper', s: 'door_tamper' },
+              { label: '💥 Combined Crisis', s: 'combined' },
+            ].map(item => (
+              <button key={item.s} onClick={() => simulateCrisis(item.s)}
+                className="w-full text-left px-4 py-2 text-xs text-[#CBD5E1] hover:bg-[#1E2530] hover:text-white transition-colors">
+                {item.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Create CTA */}

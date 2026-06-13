@@ -13,7 +13,7 @@ import { CustomersPage }    from './pages/marketing/CustomersPage';
 import { LoginPage }        from './pages/Login';
 import { SignupPage }       from './pages/Signup';
 
-/* ── AXON Command Hub pages ──────────────────────────────────────────────────── */
+/* ── Cargofy Command Hub pages ──────────────────────────────────────────────── */
 import { ControlTower }         from './pages/axon/ControlTower';
 import { ActiveShipments }      from './pages/axon/ActiveShipments';
 import { AlertsCenter }         from './pages/axon/AlertsCenter';
@@ -28,7 +28,7 @@ import { ShipmentDetailAxon }   from './pages/axon/ShipmentDetailAxon';
 import { ShipmentLaunched }     from './pages/axon/ShipmentLaunched';
 
 /* ── Auth guard ──────────────────────────────────────────────────────────────── */
-const isAuthed = () => localStorage.getItem('axon_authed') === 'true';
+const isAuthed = () => localStorage.getItem('cargofy_authed') === 'true';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   if (!isAuthed()) return <Navigate to="/login" replace />;
@@ -68,7 +68,7 @@ function App() {
         <Route path="/login"  element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
 
-        {/* ── Dashboard (Axon Command Hub) ──────────────────────────────────── */}
+        {/* ── Dashboard (Cargofy Command Hub) ────────────────────────────────── */}
         <Route path="/dashboard"              element={<ProtectedRoute><ControlTower /></ProtectedRoute>} />
         <Route path="/control-tower"          element={<ProtectedRoute><ControlTower /></ProtectedRoute>} />
         <Route path="/active-shipments"       element={<ProtectedRoute><ActiveShipments /></ProtectedRoute>} />
