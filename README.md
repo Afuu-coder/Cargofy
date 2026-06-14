@@ -1,5 +1,4 @@
 <div align="center">
-  <img src="frontend/public/cargofy-logo.png" alt="Cargofy Logo" width="200"/>
   <h1>🚚 Cargofy</h1>
   <p><b>AI-Powered Autonomous Cold Chain Intelligence Platform</b></p>
   <p><i>FAR AWAY 2026 Hackathon: Logistics & Transit x Agentic & Autonomous Systems</i></p>
