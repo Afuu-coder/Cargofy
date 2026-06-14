@@ -15,11 +15,11 @@ class Settings(BaseSettings):
     BACKEND_URL:  str = ""  # Cloud Run URL for Cloud Tasks callbacks
 
     # ── Database ──────────────────────────────────────────────────────────────
-    DATABASE_URL: str = "postgresql://postgres.yxlopjyyrukfutqhbwls:password@aws-0-ap-south-1.pooler.supabase.com:6543/postgres"
+    DATABASE_URL: str = "postgresql://postgres:Afjali786%40%40@db.yxlopjyyrukfutqhbwls.supabase.co:5432/postgres"
 
-    # ── Supabase ──────────────────────────────────────────────────────────────
-    SUPABASE_URL: str             = "https://yxlopjyyrukfutqhbwls.supabase.co"
-    SUPABASE_ANON_KEY: str        = ""
+    # ── Supabase Auth ─────────────────────────────────────────────────────────
+    SUPABASE_URL: str = "https://yxlopjyyrukfutqhbwls.supabase.co"
+    SUPABASE_ANON_KEY: str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4bG9wanl5cnVrZnV0cWhid2xzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzNjI2OTksImV4cCI6MjA5NjkzODY5OX0.FdAe1NbBoe3PUmnOs-4kmc1zUds81vVM1r0dFQ-S2Nk"
     SUPABASE_SERVICE_ROLE_KEY: str = ""
 
     # ── Security ──────────────────────────────────────────────────────────────
@@ -52,6 +52,9 @@ class Settings(BaseSettings):
     # ── CallMeBot (Free WhatsApp Alerts) ─────────────────────────────────────
     CALLMEBOT_API_KEY: str = ""   # From callmebot.com — free, no credit card
     CALLMEBOT_PHONE: str  = ""    # Your WhatsApp number e.g. +919876543210
+
+    # ── Firebase ─────────────────────────────────────────────────────────────
+    FIREBASE_DB_URL: str = ""
 
     # ── ULIP / Govt APIs (mock for demo) ────────────────────────────────────
     ULIP_API_KEY: str = ""        # Unified Logistics Interface Platform key

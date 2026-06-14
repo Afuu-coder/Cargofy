@@ -138,7 +138,61 @@ def list_shipments(
         q = q.filter(Shipment.status == status_filter)
     shipments = q.offset(offset).limit(limit).all()
 
-    return [_enrich_with_risk(s, db) for s in shipments]
+    if not shipments:
+        return []
+
+    shipment_ids = [s.id for s in shipments]
+    
+    # Bulk fetch sensors
+    sensors = (
+        db.query(SensorReading)
+        .filter(SensorReading.shipment_id.in_(shipment_ids))
+        .order_by(SensorReading.shipment_id, desc(SensorReading.recorded_at))
+        .all()
+    )
+    # Get latest sensor per shipment
+    latest_sensors = {}
+    for sr in sensors:
+        if sr.shipment_id not in latest_sensors:
+            latest_sensors[sr.shipment_id] = sr
+
+    # Bulk fetch risk events
+    risks = (
+        db.query(RiskEvent)
+        .filter(RiskEvent.shipment_id.in_(shipment_ids))
+        .order_by(RiskEvent.shipment_id, desc(RiskEvent.triggered_at))
+        .all()
+    )
+    # Get latest risk per shipment
+    latest_risks = {}
+    for re in risks:
+        if re.shipment_id not in latest_risks:
+            latest_risks[re.shipment_id] = re
+
+    responses = []
+    for shipment in shipments:
+        response = ShipmentResponse.model_validate(shipment)
+        
+        latest_risk = latest_risks.get(shipment.id)
+        latest_sensor = latest_sensors.get(shipment.id)
+
+        if latest_risk:
+            response.current_risk = RiskSummary(
+                risk_score=float(latest_risk.risk_score) if latest_risk.risk_score else None,
+                risk_category=latest_risk.risk_category,
+                time_to_spoil_minutes=latest_risk.time_to_spoil,
+                computed_at=latest_risk.triggered_at,
+            )
+            
+        if latest_sensor and latest_sensor.current_lat is not None and latest_sensor.current_lng is not None:
+            response.current_location = {
+                "lat": float(latest_sensor.current_lat),
+                "lng": float(latest_sensor.current_lng)
+            }
+            
+        responses.append(response)
+
+    return responses
 
 
 @router.get(

@@ -1,142 +1,144 @@
-﻿# Cargofy - Autonomous Cold Chain Intelligence Platform
-
-FAR AWAY 2026 Hackathon - Logistics and Transit x Agentic and Autonomous Systems
-
-GitHub: https://github.com/Afuu-coder/Cargofy
+<div align="center">
+  <img src="frontend/public/cargofy-logo.png" alt="Cargofy Logo" width="200"/>
+  <h1>🚚 Cargofy</h1>
+  <p><b>AI-Powered Autonomous Cold Chain Intelligence Platform</b></p>
+  <p><i>FAR AWAY 2026 Hackathon: Logistics & Transit x Agentic & Autonomous Systems</i></p>
+</div>
 
 ---
 
-## The Real Problem
+## ⚠️ The Real Problem
 
-Every night in India, truckloads of milk, medicines, and fresh produce silently spoil.
+Every night in India, truckloads of milk, life-saving medicines, and fresh produce silently spoil. 
+- **Rs. 92,000 crore** lost annually to cold chain failures (ASSOCHAM 2024).
+- **40%** of India's perishables spoil before ever reaching consumers.
+- No alarm goes off. No driver is notified. No rerouting happens until the goods are already ruined.
 
-- Rs.92,000 crore lost annually to cold chain failures (ASSOCHAM 2024)
-- 40% of India perishables spoil before reaching consumers
-- No alarm goes off. No driver notified. No rerouting happens.
+Existing solutions are purely reactive: they send alerts **after** the damage is done.  
+**Cargofy does not just alert. It ACTS.**
 
-Existing solutions only send alerts AFTER the damage is done.
-Cargofy does not alert. It ACTS.
+> *Traditional:* Temperature rises ➔ Alert sent ➔ Human decides ➔ Action (too late)  
+> *Cargofy:* Temperature rises ➔ AI Agent Predicts Failure ➔ Optimal Route Found ➔ Driver WhatsApp'd ➔ Crisis Avoided
 
+---
+
+## 🎯 Key Features
+
+Cargofy is a fully functional end-to-end platform blending hardware simulation, predictive AI, and real-time operations.
+
+### 1. 🤖 Autonomous Rerouting Agent (Google ADK + Gemini 2.0 Flash)
+- **Predictive Intelligence:** Predicts battery or AC failure *before* temperature breaches critical thresholds.
+- **Agentic Action:** Automatically calculates the nearest cold-storage facility and dispatches rerouting instructions without human intervention.
+- **Live WebSocket Feed:** Streams agent decisions directly to the control tower dashboard.
+
+### 2. 🗺️ 3D Fleet Visualization & Control Tower
+- **Real-Time 3D Map:** Built with Mapbox GL JS featuring 3D terrain, pitch, fog, and star field.
+- **Risk-Colored Telemetry:** Animated truck markers shift colors based on predictive risk scores (GREEN/AMBER/ORANGE/RED).
+- **Auto-Tracking Camera:** The map camera automatically locks onto shipments experiencing `CRITICAL` events.
+
+### 3. 📱 Free WhatsApp Alerts (Zero-Cost CallMeBot)
+- Instant, automated WhatsApp messages sent to drivers the moment an AI intervention is triggered (e.g., *"Milk spoiling in 35 mins! Take a right towards Vashi Cold Hub."*).
+
+### 4. 🔗 Blockchain Audit Trail (Ethereum Sepolia Testnet)
+- Immutable, on-chain recording of shipment conditions.
+- Smart contracts (`CargofyShipmentAudit.sol`) finalize verdicts (SAFE / SPOILED / PARTIAL) to guarantee transparent accountability for logistics providers.
+
+### 5. 🇮🇳 PM Gati Shakti & ULIP Integration
+- **Vahan API (Simulated):** Real-time vehicle compliance, pollution checks, and registration verification.
+- **Sarathi API (Simulated):** Instant driver background and license verification.
+
+---
+
+## 🧠 Architecture
+
+```text
+[ IoT Sensor / Simulator ] 
+         ↓
+[ FastAPI Backend ] ──────────────→ [ Risk Engine (Gemini) ]
+         ↓                                     ↓
+[ WebSocket 3D Map ] ←────── [ Rerouting Agent (Google ADK) ]
+         ↓                                     ↓
+[ Blockchain Ledger ]                 [ WhatsApp Alert ]
 ```
-Traditional:  Temperature rises -> Alert sent -> Human decides -> Action (too late)
-Cargofy:      Temperature rises -> AI Agent -> Route found -> Driver WhatsApp'd -> Crisis avoided
+
+---
+
+## 💻 Tech Stack
+
+| Layer | Technology |
+|---|---|
+| **Frontend** | React, TypeScript, Vite, TailwindCSS, Mapbox GL JS |
+| **Backend** | FastAPI, Python, SQLAlchemy, PostgreSQL (Supabase) |
+| **AI / Agentic** | Google ADK 1.31, Gemini 2.0 Flash, Gemma 2 |
+| **Real-time** | WebSockets, Firebase RTDB, Google Pub/Sub |
+| **Blockchain** | Ethereum Sepolia Testnet (Solidity, web3.py) |
+| **Integrations** | CallMeBot (WhatsApp), ULIP (Vahan/Sarathi), OpenWeather |
+
+---
+
+## 📂 Repository Structure
+
+```text
+Cargofy/
+├── backend/
+│   ├── app/
+│   │   ├── agents/        # Autonomous Rerouting & Dispatch Agents
+│   │   ├── routers/       # 25+ FastAPI endpoints (blockchain, ulip, agent)
+│   │   ├── services/      # AI, Maps, Telemetry, and Alerting services
+│   │   └── main.py        # Application entrypoint
+│   └── tests/             # Backend API and Database tests
+├── frontend/
+│   ├── src/
+│   │   ├── components/    
+│   │   │   ├── maps/      # 3D Fleet & Cargo Maps
+│   │   │   └── ui/        # Shared UI components (Badges, Command Bar)
+│   │   ├── pages/         
+│   │   │   ├── dashboard/ # Live Control Tower, Analytics, Fleet Tracking
+│   │   │   ├── marketing/ # Landing, Pricing, About pages
+│   │   │   └── auth/      # Login & Signup flows
+│   │   └── lib/           # Supabase & Axios API configuration
+├── blockchain/
+│   └── contracts/         # CargofyShipmentAudit.sol
+└── hardware/              # (Bonus) Custom ESP32+DS18B20 PCB designs
 ```
 
 ---
 
-## Architecture
+## 🚀 Quick Start
 
-```
-IoT Sensor / Simulator -> FastAPI Backend -> Risk Engine (Gemini) -> Rerouting Agent (Google ADK)
-                                                                          |
-                              +-------------------------------------------+
-                              |                     |                      |
-                      WhatsApp Alert          WebSocket 3D Map     Blockchain Cert
-                      (CallMeBot FREE)        (Mapbox GL 3D)       (Ethereum Sepolia)
-```
-
-Cross-theme: Logistics and Transit + Agentic and Autonomous Systems
-
----
-
-## Key Features
-
-1. Autonomous Rerouting Agent (Google ADK + Gemini 2.0 Flash)
-   - Battery failure prediction BEFORE temperature rises
-   - POST /api/v1/agent/simulate-critical (4 demo scenarios)
-   - WebSocket ws://localhost:8000/api/v1/agent/ws/live
-
-2. 3D Fleet Visualization (/fleet-3d)
-   - Mapbox GL JS with 3D terrain, pitch 45, fog, star field
-   - Risk-colored animated truck markers (GREEN/AMBER/ORANGE/RED)
-   - Pulsing halo on CRITICAL shipments
-   - Auto flyTo camera on REROUTE_DECISION event
-
-3. ULIP / PM Gati Shakti Integration
-   - GET /api/v1/ulip/vehicle/{plate} - Vahan compliance check
-   - GET /api/v1/ulip/driver/{license} - Sarathi driver record
-
-4. Free WhatsApp Alerts (CallMeBot - zero cost)
-   - "Bhai, milk 35 minute mein kharab! Right lo - Vashi Cold Hub jaao"
-
-5. Blockchain Audit Trail (Ethereum Sepolia)
-   - CargofyShipmentAudit.sol - Solidity smart contract
-   - SAFE / SPOILED / PARTIAL verdict - immutable on-chain
-   - POST /api/v1/blockchain/certify
-   - GET /api/v1/blockchain/verify/{code} + Etherscan link
-
-6. PCB Hardware Design (Bonus)
-   - ESP32-WROOM-32 + DS18B20 + DHT22 + TP4056
-   - Rs.650/unit, IP65, 72hr battery life
-   - See hardware/ folder
-
----
-
-## Tech Stack
-
-| Layer        | Technology                                               |
-|--------------|----------------------------------------------------------|
-| Backend      | FastAPI + SQLAlchemy + PostgreSQL                        |
-| AI Engine    | Google ADK 1.31 + Gemini 2.0 Flash + Gemma 2            |
-| Real-time    | Firebase RTDB + WebSockets                               |
-| Data         | Google Pub/Sub + BigQuery                                |
-| Maps         | Google Maps API + Mapbox GL JS (3D)                      |
-| WhatsApp     | CallMeBot (FREE) + Twilio + Meta API                     |
-| Frontend     | React + TypeScript + Vite                                |
-| Blockchain   | Ethereum Sepolia (Solidity + web3.py)                    |
-| Govt APIs    | ULIP Vahan + Sarathi                                     |
-| Hardware     | ESP32 + DS18B20 + TP4056 PCB (60x40mm, 2-layer)         |
-
----
-
-## Quick Start
-
+### 1. Backend Setup
 ```bash
-git clone https://github.com/Afuu-coder/Cargofy.git
-cd Cargofy/backend
+cd backend
+python -m venv venv
+source venv/bin/activate  # (or `venv\Scripts\activate` on Windows)
 pip install -r requirements.txt
-cp .env.example .env
+cp .env.example .env      # Add your API keys (Gemini, Supabase, Mapbox)
 uvicorn app.main:app --reload --port 8000
 ```
 
-Test Agent (no API key needed):
+### 2. Frontend Setup
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+### 3. Trigger an Agentic Simulation
+You can trigger a simulated critical battery failure to watch the AI Agent spring into action:
 ```bash
 curl -X POST http://localhost:8000/api/v1/agent/simulate-critical \
   -H "Content-Type: application/json" \
-  -d "{\"scenario\": \"battery_failure\", \"shipment_id\": \"SHP-DEMO-001\"}"
+  -d '{"scenario": "battery_failure", "shipment_id": "SHP-DEMO-001"}'
 ```
+*Watch the dashboard 3D map fly to the truck, risk levels spike, and a WhatsApp alert fire!*
 
 ---
 
-## 90-Second Demo
-
-1. (0-10s)  Open /fleet-3d. 5 trucks on 3D India map.
-2. (10-25s) Click "Battery Failure". Truck MH-001 goes RED. Camera flies to it.
-3. (25-45s) Agent sidebar shows REROUTE_DECISION. WhatsApp arrives on phone.
-4. (45-60s) Show ULIP: GET /api/v1/ulip/vehicle/MH12AB1234 -> compliance check.
-5. (60-75s) Show blockchain: POST /certify -> tx_hash + Etherscan URL.
-6. (75-90s) Show GitHub: 9 meaningful commits. "Every feature shipped, not promised."
+## 🌐 Live Deployment
+- **Frontend App:** [https://cargofy-live-2026.web.app](https://cargofy-live-2026.web.app)
+- **Backend API:** Hosted on Google Cloud Run (`asia-south1`)
+- **Database:** Supabase PostgreSQL
 
 ---
 
-## Repository Structure
-
-```
-Cargofy/
-|-- backend/app/
-|   |-- agents/     <- rerouting_agent.py, dispatch_agent.py
-|   |-- routers/    <- 25+ API routers (ulip, rerouting, blockchain...)
-|   +-- services/   <- 23 services (AI, Maps, WhatsApp, BigQuery, RTDB...)
-|-- frontend/src/
-|   |-- components/ <- CargoMap3D.tsx (3D fleet map + WebSocket)
-|   +-- pages/axon/ <- 13 dashboard pages
-|-- blockchain/
-|   +-- contracts/  <- CargofyShipmentAudit.sol
-|-- hardware/
-|   |-- README.md   <- PCB specs, BOM (18 components)
-|   +-- firmware/   <- cargofy_node_v1.ino (ESP32 sketch)
-```
-
----
-
-FAR AWAY 2026 | Real problem -> Real system -> Real demo
+*Built with ❤️ for FAR AWAY 2026 Hackathon.*
