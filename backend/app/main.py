@@ -39,7 +39,6 @@ app = FastAPI(
 Key Features:
 - 🤖 Autonomous Rerouting Agent (Google ADK + Gemini 2.0 Flash)
 - 📱 Free WhatsApp Alerts (CallMeBot API)
-- 🇮🇳 ULIP / PM Gati Shakti Integration (Vahan + Sarathi)
 - ⚡ Predictive Battery/AC Failure Detection
 - 🔗 Blockchain Audit Trail (Sepolia Testnet)
 - 📡 Real-time WebSocket Dashboard
