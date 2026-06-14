@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -156,6 +156,152 @@ function RiskCard({
 }
 
 // â”€â”€ Intervention Panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── AI Countermeasure Engine ─────────────────────────────────────────────────
+type CMStep = {
+  id: string; label: string; icon: string;
+  detail: string; auto: boolean; delay: number; color: string;
+};
+const CM_STEPS: CMStep[] = [
+  { id:'s1', label:'Threat Assessment',     icon:'🔍', detail:'Gemini ADK scans 47 IoT telemetry parameters — Severity: CRITICAL',  auto:true,  delay:0,    color:'#A78BFA' },
+  { id:'s2', label:'Driver WhatsApp Alert',  icon:'📲', detail:'Auto-dispatched to +91-98XX-XXXXX — ACK within 45s',                 auto:true,  delay:4000, color:'#60A5FA' },
+  { id:'s3', label:'Cold Hub Redirect',      icon:'🏭', detail:'Nearest NovaCold Hub — 12.4 km — Dock 4B reserved',                  auto:true,  delay:9000, color:'#FBBF24' },
+  { id:'s4', label:'Reroute via Mapbox AI',  icon:'🗺️', detail:'Alternate NH-48 route — ETA adjusted +22 min',                       auto:true,  delay:15000,color:'#34D399' },
+  { id:'s5', label:'Blockchain Audit Log',   icon:'⛓️', detail:'Incident hash committed to Sepolia — Block #8,847,221',              auto:true,  delay:21000,color:'#F97316' },
+];
+
+function AICountermeasureEngine({ score, shipmentCode, onToast }: {
+  score: number; shipmentCode: string; onToast: (m: string, t?: 'ok'|'warn') => void;
+}) {
+  const [running,   setRunning]   = useState(false);
+  const [done,      setDone]      = useState(false);
+  const [active,    setActive]    = useState<Set<string>>(new Set());
+  const [completed, setCompleted] = useState<Set<string>>(new Set());
+  const [elapsed,   setElapsed]   = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval>|null>(null);
+  const total = 21000 + 4000; // last step delay + 4s for completion
+
+  const launch = () => {
+    if (running || done) return;
+    setRunning(true);
+    setActive(new Set());
+    setCompleted(new Set());
+    setElapsed(0);
+
+    timerRef.current = setInterval(() => setElapsed(e => e + 200), 200);
+
+    CM_STEPS.forEach(step => {
+      setTimeout(() => {
+        setActive(a => new Set([...a, step.id]));
+        onToast(`▶ ${step.label} — ${step.detail.slice(0, 40)}...`, 'ok');
+        setTimeout(() => {
+          setActive(a => { const n = new Set(a); n.delete(step.id); return n; });
+          setCompleted(c => new Set([...c, step.id]));
+        }, 3800);
+      }, step.delay);
+    });
+
+    setTimeout(() => {
+      setRunning(false); setDone(true);
+      if (timerRef.current) clearInterval(timerRef.current);
+      onToast(`✅ All 5 countermeasures deployed for ${shipmentCode}`, 'ok');
+    }, total);
+  };
+
+  const reset = () => { setRunning(false); setDone(false); setActive(new Set()); setCompleted(new Set()); setElapsed(0); if(timerRef.current) clearInterval(timerRef.current); };
+  const progress = Math.min(100, (elapsed / total) * 100);
+  const isHot = score > 65;
+
+  return (
+    <div className="bg-[#060912] border border-[#1E2530] rounded-2xl overflow-hidden mb-4">
+      {/* Header */}
+      <div className="px-4 py-3 flex items-center justify-between border-b border-[#1E2530]"
+        style={{ background: isHot ? 'linear-gradient(90deg,rgba(239,68,68,0.06),rgba(167,139,250,0.06))' : 'transparent' }}>
+        <div className="flex items-center gap-2">
+          <motion.div animate={running ? {rotate:360} : {}} transition={{repeat:Infinity,duration:2,ease:'linear'}}>
+            <Bot size={16} className="text-[#A78BFA]"/>
+          </motion.div>
+          <div>
+            <div className="text-xs font-bold text-[#F1F5F9]">AI Countermeasure Engine</div>
+            <div className="text-[9px] text-[#64748B]">Gemini ADK Multi-Agent · 5-Step Response Protocol</div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {done && <span className="text-[9px] text-[#34D399] font-bold">ALL DEPLOYED ✓</span>}
+          {running && (
+            <span className="text-[9px] text-[#A78BFA] font-mono animate-pulse">
+              {((total - elapsed) / 1000).toFixed(0)}s remaining
+            </span>
+          )}
+          {done ? (
+            <button onClick={reset} className="text-[10px] text-[#64748B] border border-[#1E2530] px-2 py-1 rounded hover:border-[#374151] transition-colors">↩ Reset</button>
+          ) : (
+            <motion.button whileHover={{scale:1.04}} whileTap={{scale:0.96}} onClick={launch} disabled={running || !isHot}
+              className={`flex items-center gap-1.5 text-[10px] px-3 py-1.5 rounded-lg font-bold transition-all ${
+                !isHot ? 'bg-[#1E2530] text-[#4A5568] cursor-not-allowed' :
+                running ? 'bg-[#A78BFA]/10 text-[#A78BFA] cursor-wait' :
+                'bg-[#A78BFA] text-[#030712] hover:brightness-110'
+              }`}>
+              {running ? <Loader2 size={10} className="animate-spin"/> : <Sparkles size={10}/>}
+              {running ? 'Executing...' : isHot ? '🚨 Launch Response' : 'Low Risk — Standby'}
+            </motion.button>
+          )}
+        </div>
+      </div>
+
+      {/* Progress bar */}
+      {(running || done) && (
+        <div className="h-1 bg-[#1E2530]">
+          <motion.div animate={{width:`${done ? 100 : progress}%`}} transition={{duration:0.3}}
+            className="h-full rounded-full" style={{background:'linear-gradient(90deg,#A78BFA,#60A5FA,#34D399)'}}/>
+        </div>
+      )}
+
+      {/* Steps */}
+      <div className="px-4 py-3 space-y-2">
+        {!isHot && !running && !done && (
+          <div className="text-[10px] text-[#4A5568] text-center py-3 flex flex-col items-center gap-1">
+            <Bot size={20} className="text-[#A78BFA]/30"/>
+            <span>Risk score must exceed <strong className="text-[#FBBF24]">65</strong> to arm countermeasures.</span>
+          </div>
+        )}
+        {CM_STEPS.map((step, idx) => {
+          const isActive    = active.has(step.id);
+          const isComplete  = completed.has(step.id);
+          const isPending   = running && !isActive && !isComplete && elapsed < step.delay;
+          const isLocked    = !running && !done && isHot;
+          return (
+            <motion.div key={step.id} initial={{opacity:0,x:-8}} animate={{opacity:1,x:0}} transition={{delay:idx*0.05}}
+              className="flex items-start gap-3 p-2.5 rounded-lg transition-all"
+              style={{ background: isActive ? `${step.color}12` : isComplete ? '#0F1A0E' : '#0A0D14',
+                       border: `1px solid ${isActive ? step.color+'40' : isComplete ? '#1A3D2B' : '#1E2530'}` }}>
+              <div className="shrink-0 text-base mt-0.5">
+                {isComplete ? <CheckCheck size={14} className="text-[#34D399] mt-0.5"/> :
+                 isActive   ? <motion.div animate={{rotate:360}} transition={{repeat:Infinity,duration:1,ease:'linear'}}><Loader2 size={14} style={{color:step.color}}/></motion.div> :
+                 <span className="text-sm">{step.icon}</span>}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold" style={{ color: isActive ? step.color : isComplete ? '#4DD9AC' : '#64748B' }}>
+                    {step.label}
+                  </span>
+                  <span className="text-[8px] font-mono" style={{ color: isActive ? step.color : isComplete ? '#34D399' : '#374151' }}>
+                    {isActive ? 'EXECUTING...' : isComplete ? 'DEPLOYED ✓' : isPending ? `T+${step.delay/1000}s` : isLocked ? 'ARMED' : ''}
+                  </span>
+                </div>
+                {(isActive || isComplete) && (
+                  <motion.p initial={{opacity:0}} animate={{opacity:1}} className="text-[9px] text-[#64748B] mt-0.5 leading-relaxed">
+                    {step.detail}
+                  </motion.p>
+                )}
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function InterventionPanel({
   shipment, sensors, riskEvts, onToast, liveFactors,
 }: {
@@ -254,12 +400,16 @@ function InterventionPanel({
         <div className="text-xs text-[#64748B]">
           {pIcon(shipment.product_type)} <span className="capitalize">{shipment.product_type}</span>
           {' Â· '}{shipment.origin?.split(',')[0]} â†’ {shipment.destination?.split(',')[0]}
+          {' · '}{shipment.origin?.split(',')[0]} → {shipment.destination?.split(',')[0]}
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
 
-        {/* â”€â”€ Risk Gauge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── AI Countermeasure Engine ─────────────────────────────── */}
+        <AICountermeasureEngine score={score} shipmentCode={shipment.shipment_code} onToast={onToast}/>
+
+        {/* ── Risk Gauge ───────────────────────────────────────────── */}
         <div className="bg-[#111827] rounded-xl p-4 relative overflow-hidden">
           <div className="absolute inset-0 pointer-events-none" style={{background:`radial-gradient(circle at 50% 0%, ${color}08 0%, transparent 70%)`}}/>
           <div className="text-[10px] text-[#64748B] uppercase tracking-widest mb-3">Risk Score</div>

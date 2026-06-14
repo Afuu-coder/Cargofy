@@ -273,6 +273,115 @@ function getAIVerdicts(d: Driver, scores: Record<string, number>): string[] {
   return verdicts;
 }
 
+/** Gemini-style reliability narrative based on driver stats */
+function buildGeminiNarrative(d: Driver, avg: number): string {
+  const first = d.name.split(' ')[0];
+  const tier = avg >= 88 ? 'ELITE' : avg >= 72 ? 'RELIABLE' : avg >= 55 ? 'MODERATE' : 'HIGH-RISK';
+  const monsoonNote = d.avgDelay > 25 ? `${first} shows a ${Math.round(d.avgDelay * 0.5)}% higher delay rate during monsoon months due to NH-37 hill sections. ` : '';
+  const excNote = d.excursions > 2 ? `With ${d.excursions} temperature excursions logged, reefer discipline requires attention. ` :
+                  d.excursions === 0 ? `Zero temperature excursions — exceptional cold-chain hygiene. ` : '';
+  const recom = tier === 'ELITE' ? 'Recommend for PHARMA and high-value cargo.' :
+                tier === 'RELIABLE' ? 'Suitable for standard cold-chain assignments.' :
+                tier === 'MODERATE' ? 'Assign to lower-risk produce shipments only.' :
+                'Do not assign to sensitive pharma or frozen cargo without supervision.';
+  return `• AI Tier: ${tier} • Overall Score: ${Math.round(avg)}/100
+${monsoonNote}${excNote}${recom}`;
+}
+
+// ── Smart Allocation Guard Modal ───────────────────────────────────────────────────────────────
+const HIGH_VALUE_TYPES = ['pharma', 'frozen', 'seafood'];
+function SmartAllocationGuard({ vehicle, onClose }: { vehicle: Vehicle; onClose: () => void }) {
+  const [product, setProduct] = useState('dairy');
+  const health = vehicle.reeferHealth;
+  const isHighValue = HIGH_VALUE_TYPES.includes(product);
+  const isBlocked = isHighValue && health < 70;
+  const riskLevel = health >= 85 ? 'LOW' : health >= 70 ? 'MODERATE' : 'HIGH';
+  const riskColor = riskLevel === 'LOW' ? '#34D399' : riskLevel === 'MODERATE' ? '#FBBF24' : '#EF4444';
+
+  return (
+    <AnimatePresence>
+      <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}
+        className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        onClick={onClose}>
+        <motion.div initial={{scale:0.92,y:20}} animate={{scale:1,y:0}} exit={{scale:0.92,y:20}}
+          onClick={e=>e.stopPropagation()}
+          className="bg-[#0A0D14] border border-[#1E2530] rounded-2xl p-6 w-full max-w-md shadow-2xl">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-10 h-10 rounded-xl bg-[#A78BFA]/10 border border-[#A78BFA]/30 flex items-center justify-center">
+              <Bot size={20} className="text-[#A78BFA]" />
+            </div>
+            <div>
+              <div className="font-bold text-[#F1F5F9]">AI Allocation Safety Check</div>
+              <div className="text-[10px] text-[#64748B]">Gemini ADK — {vehicle.plate} • Reefer Health: <span style={{color:riskColor}}>{health}%</span></div>
+            </div>
+          </div>
+
+          {/* Product selector */}
+          <div className="mb-4">
+            <div className="text-xs text-[#64748B] mb-2">Select cargo type to assign:</div>
+            <div className="grid grid-cols-3 gap-2">
+              {['dairy','produce','seafood','frozen','pharma','fruits'].map(p => (
+                <button key={p} onClick={()=>setProduct(p)}
+                  className={`text-xs py-2 px-3 rounded-lg border capitalize transition-all ${
+                    product===p ? 'bg-[#A78BFA]/15 border-[#A78BFA]/60 text-[#A78BFA] font-bold' : 'border-[#1E2530] text-[#64748B] hover:border-[#374151]'
+                  }`}>{p}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* Compatibility matrix */}
+          <div className="bg-[#111827] rounded-xl p-4 mb-4 space-y-2">
+            <div className="text-[10px] text-[#64748B] uppercase tracking-widest font-semibold mb-3">Compatibility Matrix</div>
+            {[
+              { label: 'Cargo Risk Level', value: isHighValue ? '🔴 HIGH VALUE' : '🟢 STANDARD', color: isHighValue ? '#F87171' : '#34D399' },
+              { label: 'Vehicle Reefer Health', value: `${health}% — ${riskLevel}`, color: riskColor },
+              { label: 'Service Status', value: vehicle.serviceOverdue ? '❌ Overdue' : '✅ Current', color: vehicle.serviceOverdue ? '#EF4444' : '#34D399' },
+              { label: 'Calibration', value: vehicle.calibrationValid ? '✅ Valid' : '⚠️ Expired', color: vehicle.calibrationValid ? '#34D399' : '#FBBF24' },
+            ].map(row => (
+              <div key={row.label} className="flex justify-between text-xs">
+                <span className="text-[#64748B]">{row.label}</span>
+                <span className="font-bold" style={{color:row.color}}>{row.value}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* AI verdict */}
+          {isBlocked ? (
+            <motion.div initial={{opacity:0,y:6}} animate={{opacity:1,y:0}}
+              className="bg-[#EF4444]/8 border border-[#EF4444]/30 rounded-xl p-4 mb-4">
+              <div className="flex items-center gap-2 text-[#F87171] font-bold text-sm mb-1">🚫 AI Blocked — Unsafe Assignment</div>
+              <p className="text-[11px] text-[#94A3B8]">
+                Reefer health ({health}%) is below the 70% threshold for {product} cargo.
+                High risk of temperature excursion. Assign a vehicle with health ≥ 70% or reclassify cargo.
+              </p>
+            </motion.div>
+          ) : (
+            <motion.div initial={{opacity:0,y:6}} animate={{opacity:1,y:0}}
+              className="bg-[#34D399]/8 border border-[#34D399]/30 rounded-xl p-4 mb-4">
+              <div className="flex items-center gap-2 text-[#34D399] font-bold text-sm mb-1">✅ AI Approved — Safe to Assign</div>
+              <p className="text-[11px] text-[#94A3B8]">
+                Vehicle is compatible with {product} cargo. Reefer health is {riskLevel.toLowerCase()}.
+                {vehicle.serviceOverdue ? ' Schedule service after this trip.' : ' All systems nominal.'}
+              </p>
+            </motion.div>
+          )}
+
+          <div className="flex gap-3">
+            <button onClick={onClose} className="flex-1 text-sm py-2.5 rounded-xl border border-[#1E2530] text-[#64748B] hover:border-[#374151] transition-colors">Cancel</button>
+            {!isBlocked && (
+              <motion.button whileHover={{scale:1.02}} whileTap={{scale:0.97}} onClick={onClose}
+                className="flex-1 text-sm py-2.5 rounded-xl bg-[#4DD9AC] text-[#003829] font-bold hover:bg-[#6EF6C7] transition-colors">
+                ✅ Confirm Assignment
+              </motion.button>
+            )}
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+
 function AIBehaviorScore({ driver }: { driver: Driver }) {
   const [analysing, setAnalysing] = useState(false);
   const [analysed, setAnalysed]   = useState(false);
@@ -377,6 +486,42 @@ function AIBehaviorScore({ driver }: { driver: Driver }) {
             </div>
           </motion.div>
         )}
+      </AnimatePresence>
+
+      {/* 🧠 Gemini Reliability Narrative */}
+      <AnimatePresence>
+        {analysed && (() => {
+          const vals = Object.values(scores);
+          const avg = vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
+          const narrative = buildGeminiNarrative(driver, avg);
+          const tier = avg >= 88 ? 'ELITE' : avg >= 72 ? 'RELIABLE' : avg >= 55 ? 'MODERATE' : 'HIGH-RISK';
+          const tierColor = tier === 'ELITE' ? '#34D399' : tier === 'RELIABLE' ? '#60A5FA' : tier === 'MODERATE' ? '#FBBF24' : '#EF4444';
+          return (
+            <motion.div initial={{opacity:0,height:0}} animate={{opacity:1,height:'auto'}} className="overflow-hidden">
+              <div className="px-4 pb-4 border-t border-[#1E2530] pt-3">
+                <div className="text-[9px] text-[#A78BFA] uppercase tracking-widest font-bold mb-2 flex items-center gap-1">
+                  <Sparkles size={9}/> Gemini Reliability Narrative
+                </div>
+                <p className="text-[10px] text-[#CBD5E1] leading-relaxed whitespace-pre-line">{narrative}</p>
+                {/* Risk prediction bar */}
+                <div className="mt-3">
+                  <div className="flex justify-between text-[9px] text-[#64748B] mb-1">
+                    <span>RELIABLE</span><span>HIGH-RISK</span>
+                  </div>
+                  <div className="h-2 rounded-full overflow-hidden" style={{background:'linear-gradient(90deg,#34D399,#FBBF24,#EF4444)'}}>
+                    <motion.div initial={{left:0}} animate={{left:`${100-avg}%`}}
+                      className="absolute w-2 h-2 rounded-full bg-white shadow-lg -mt-0 border border-[#0A0D14]"
+                      style={{position:'relative', marginLeft:`${100-avg}%`, width:8, height:8, borderRadius:'50%', background:'#fff', marginTop:-3}}
+                    />
+                  </div>
+                  <div className="mt-1 text-center">
+                    <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{color:tierColor,background:`${tierColor}18`}}>{tier}</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          );
+        })()}
       </AnimatePresence>
     </div>
   );
@@ -515,7 +660,7 @@ function DriverDetail({ driver: d, onClose }: { driver: Driver; onClose: () => v
 // ─────────────────────────────────────────────────────────────────────────────
 // Vehicle Detail Panel
 // ─────────────────────────────────────────────────────────────────────────────
-function VehicleDetail({ vehicle: v, onClose }: { vehicle: Vehicle; onClose: () => void }) {
+function VehicleDetail({ vehicle: v, onClose, onAssign }: { vehicle: Vehicle; onClose: () => void; onAssign?: (v: Vehicle) => void }) {
   const [sbadge, scolor] = vsBadge(v.status);
   const rHealth = v.reeferFault ? 0 : v.reeferHealth;
   const rColor  = v.reeferFault ? '#EF4444' : reeferColor(rHealth);
@@ -650,13 +795,14 @@ function VehicleDetail({ vehicle: v, onClose }: { vehicle: Vehicle; onClose: () 
         {/* Actions */}
         <div className="grid grid-cols-2 gap-2">
           {[
-            {icon:<ArrowRight size={14}/>,label:'Assign to Shipment', color:'#4DD9AC'},
-            {icon:<Wrench size={14}/>,label:'Schedule Service',    color:'#A78BFA'},
-            {icon:<Radio size={14}/>,label:'Live Sensor View',    color:'#60A5FA'},
-            {icon:<AlertTriangle size={14}/>,label:'Flag Issue',          color:'#FBBF24'},
-            {icon:<FileText size={14}/>,label:'Vehicle Report',      color:'#F97316'},
+            {icon:<ArrowRight size={14}/>,label:'Assign to Shipment', color:'#4DD9AC', action:'assign'},
+            {icon:<Wrench size={14}/>,label:'Schedule Service',    color:'#A78BFA', action:''},
+            {icon:<Radio size={14}/>,label:'Live Sensor View',    color:'#60A5FA', action:''},
+            {icon:<AlertTriangle size={14}/>,label:'Flag Issue',          color:'#FBBF24', action:''},
+            {icon:<FileText size={14}/>,label:'Vehicle Report',      color:'#F97316', action:''},
           ].map((b,idx)=>(
-            <button key={idx} className="text-xs py-2 px-3 rounded-lg border border-[#1E2530] bg-[#111827] font-semibold hover:brightness-110 transition-all text-left flex items-center gap-2"
+            <button key={idx} onClick={() => b.action==='assign' && onAssign?.(v)}
+              className="text-xs py-2 px-3 rounded-lg border border-[#1E2530] bg-[#111827] font-semibold hover:brightness-110 transition-all text-left flex items-center gap-2"
               style={{color:b.color}}>
               {b.icon} {b.label}
             </button>
@@ -841,6 +987,7 @@ export function FleetAndDrivers() {
   const [liveDrivers,   setLiveDrivers]  = useState<FleetDriver[]>([]);
   const [liveVehicles,  setLiveVehicles] = useState<FleetVehicle[]>([]);
   const [fleetSummary,  setFleetSummary] = useState<FleetHealthSummary|null>(null);
+  const [allocGuardVehicle, setAllocGuardVehicle] = useState<Vehicle|null>(null);
 
   useEffect(() => {
     getShipments('all').then(setShipments).catch(() => {});
@@ -942,6 +1089,7 @@ export function FleetAndDrivers() {
       {/* Modals */}
       {showAddDriver  && <AddDriverModal  onClose={()=>setShowAddDriver(false)}/>}
       {showAddVehicle && <AddVehicleModal onClose={()=>setShowAddVehicle(false)}/>}
+  {allocGuardVehicle && <SmartAllocationGuard vehicle={allocGuardVehicle} onClose={()=>setAllocGuardVehicle(null)}/>}
 
       {/* ── Top Nav ───────────────────────────────────────────────── */}
       <header className="shrink-0 bg-[#0A0D14] border-b border-[#1E2530] px-5 py-3 flex items-center gap-4 z-40">
@@ -1162,7 +1310,7 @@ export function FleetAndDrivers() {
           {/* RIGHT: Detail */}
           <div className="flex-1 min-w-0 bg-[#080B12] overflow-hidden">
             {selVehicle
-              ? <VehicleDetail vehicle={selVehicle} onClose={()=>setSelVehicle(null)}/>
+              ? <VehicleDetail vehicle={selVehicle} onClose={()=>setSelVehicle(null)} onAssign={v=>setAllocGuardVehicle(v)}/>
               : <div className="flex flex-col items-center justify-center h-full text-center px-8"><span className="text-5xl mb-4">🚛</span><div className="text-[#64748B]">Select a vehicle to view its health profile</div></div>
             }
           </div>

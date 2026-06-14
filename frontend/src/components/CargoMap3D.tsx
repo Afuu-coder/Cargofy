@@ -12,7 +12,7 @@
  * No Cesium install needed — Mapbox GL JS supports full 3D globe.
  */
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useImperativeHandle, forwardRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -38,6 +38,11 @@ interface WSEvent {
   urgency?:     string;
   facility?:    Record<string, unknown>;
   timestamp?:   string;
+}
+
+export interface CargoMap3DHandle {
+  focusTruck: (shipmentCode: string) => void;
+  resetCamera: () => void;
 }
 
 interface CargoMap3DProps {
@@ -120,14 +125,14 @@ function createTruckMarkerEl(
   return div;
 }
 
-// ── Main Component ────────────────────────────────────────────────────────────
+// ── Main Component (forwardRef for cinematic camera handle) ──────────────────────
 
-export function CargoMap3D({
+export const CargoMap3D = forwardRef<CargoMap3DHandle, CargoMap3DProps>(function CargoMap3DInner({
   trucks,
   mapboxToken,
   apiBase = '',
   onRerouteAlert,
-}: CargoMap3DProps) {
+}, ref) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef          = useRef<mapboxgl.Map | null>(null);
   const markersRef      = useRef<Map<string, mapboxgl.Marker>>(new Map());
@@ -137,6 +142,8 @@ export function CargoMap3D({
   const [truckData, setTruckData]   = useState<TruckPosition[]>(trucks || DEMO_TRUCKS);
   const [is3D, setIs3D]             = useState(true);
   const [criticalCount, setCriticalCount] = useState(0);
+  const [cinematic, setCinematic]   = useState(false); // letterbox overlay during camera swoop
+  const truckDataRef                = useRef<TruckPosition[]>(trucks || DEMO_TRUCKS);
 
   // ── Inject pulse animation CSS ────────────────────────────────────────────
   useEffect(() => {
@@ -233,6 +240,38 @@ export function CargoMap3D({
           'line-dasharray': [3, 3],
         },
       });
+
+      // ── Risk Aura circle layers (glow rings for HIGH/CRITICAL trucks) ─────────
+      map.addSource('risk-auras', {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: [] },
+      });
+      // outer glow ring
+      map.addLayer({
+        id: 'aura-outer',
+        type: 'circle',
+        source: 'risk-auras',
+        paint: {
+          'circle-radius': 55,
+          'circle-color': ['get', 'color'],
+          'circle-opacity': 0.12,
+          'circle-blur': 1,
+          'circle-pitch-alignment': 'map',
+        },
+      });
+      // inner pulse ring
+      map.addLayer({
+        id: 'aura-inner',
+        type: 'circle',
+        source: 'risk-auras',
+        paint: {
+          'circle-radius': 30,
+          'circle-color': ['get', 'color'],
+          'circle-opacity': 0.22,
+          'circle-blur': 0.6,
+          'circle-pitch-alignment': 'map',
+        },
+      });
     });
 
     mapRef.current = map;
@@ -303,7 +342,22 @@ export function CargoMap3D({
       });
 
       setCriticalCount(critical);
+
+      // ── Update risk aura GeoJSON source ─────────────────────────────────
+      const auraSource = map.getSource('risk-auras') as mapboxgl.GeoJSONSource | undefined;
+      if (auraSource) {
+        const auraFeatures = truckData
+          .filter(t => t.risk_category === 'CRITICAL' || t.risk_category === 'HIGH')
+          .map(t => ({
+            type: 'Feature' as const,
+            properties: { color: RISK_COLORS[t.risk_category] },
+            geometry: { type: 'Point' as const, coordinates: [t.lng, t.lat] },
+          }));
+        auraSource.setData({ type: 'FeatureCollection', features: auraFeatures });
+      }
     };
+
+    truckDataRef.current = truckData;
 
     if (mapRef.current?.loaded()) {
       updateMarkers();
@@ -392,6 +446,42 @@ export function CargoMap3D({
     setIs3D(!is3D);
   }, [is3D]);
 
+  // ── Cinematic God-Mode focusTruck (3-phase swoop) ─────────────────────────
+  const focusTruck = useCallback((shipmentCode: string) => {
+    const map = mapRef.current;
+    if (!map) return;
+    const truck = truckDataRef.current.find(t => t.shipment_code === shipmentCode);
+    if (!truck) return;
+
+    setCinematic(true);
+
+    // Phase 1: pull back to space (0.5s)
+    map.flyTo({ center: [78.9629, 20.5937], zoom: 3, pitch: 0, bearing: 0, duration: 600 });
+
+    // Phase 2: cinematic swoop to truck (1.5s after phase 1)
+    setTimeout(() => {
+      map.flyTo({
+        center:   [truck.lng, truck.lat],
+        zoom:     13,
+        pitch:    60,
+        bearing:  -20,
+        duration: 1800,
+        essential: true,
+      });
+    }, 700);
+
+    // Phase 3: lock follow mode — poll position every 5s and re-center
+    setTimeout(() => {
+      setCinematic(false);
+    }, 2600);
+  }, []);
+
+  // Expose focusTruck via ref
+  useImperativeHandle(ref, () => ({
+    focusTruck,
+    resetCamera: () => mapRef.current?.flyTo({ center: [78.9629, 20.5937], zoom: 4.5, pitch: 45, bearing: -10, duration: 1200 }),
+  }), [focusTruck]);
+
   // ── Fly to India overview ─────────────────────────────────────────────────
   const flyToIndia = useCallback(() => {
     mapRef.current?.flyTo({
@@ -409,6 +499,17 @@ export function CargoMap3D({
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%', borderRadius: '12px', overflow: 'hidden' }}>
+
+      {/* 🎬 Cinematic Letterbox Overlay */}
+      {cinematic && (
+        <>
+          <div style={{ position:'absolute', top:0, left:0, right:0, height:60, background:'#000', zIndex:50, transition:'opacity 0.4s' }} />
+          <div style={{ position:'absolute', bottom:0, left:0, right:0, height:60, background:'#000', zIndex:50, transition:'opacity 0.4s' }} />
+          <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', zIndex:51, pointerEvents:'none' }}>
+            <div style={{ color:'#4DD9AC', fontFamily:'monospace', fontSize:11, letterSpacing:4, opacity:0.7 }}>TRACKING TARGET — GOD MODE</div>
+          </div>
+        </>
+      )}
 
       {/* ── Map container ─────────────────────────────────────────────────── */}
       <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }} />
@@ -527,4 +628,4 @@ export function CargoMap3D({
       `}</style>
     </div>
   );
-}
+});

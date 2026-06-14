@@ -461,6 +461,8 @@ export function LiveTracking() {
   const [sensors,    setSensors]    = useState<SensorReading[]>([]);
   const [riskEvents, setRiskEvents] = useState<RiskEvent[]>([]);
   const [mapMode,    setMapMode]    = useState<'2d'|'3d'>('3d'); // Toggle between 2D Mapbox route and 3D Cesium globe
+  const [weatherOn,  setWeatherOn]  = useState(false); // Weather radar toggle
+  const [deviation,  setDeviation]  = useState(false); // Geofence deviation alert
   const [fullscreen, setFullscreen] = useState(false);
 
   const { toasts, add: toast } = useToasts();
@@ -571,6 +573,19 @@ export function LiveTracking() {
           <button onClick={() => setMapMode('2d')} className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${mapMode === '2d' ? 'bg-[#1E2530] text-white' : 'text-[#64748B] hover:text-[#CBD5E1]'}`}>2D Route</button>
           <button onClick={() => setMapMode('3d')} className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${mapMode === '3d' ? 'bg-[#6366F1]/20 text-[#818CF8]' : 'text-[#64748B] hover:text-[#CBD5E1]'}`}>3D Globe</button>
         </div>
+
+        {/* Weather Radar Toggle */}
+        <motion.button whileTap={{scale:0.95}} onClick={() => {
+          setWeatherOn(w => !w);
+          if (!weatherOn) { setTimeout(() => setDeviation(true), 8000); }
+          else { setDeviation(false); }
+        }}
+          className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold transition-all mr-1 ${
+            weatherOn ? 'bg-[#3B82F6]/15 border-[#3B82F6]/50 text-[#60A5FA]' : 'border-[#1E2530] text-[#64748B] hover:border-[#374151]'
+          }`}>
+          🌩️ Weather Radar
+          {weatherOn && <motion.span animate={{opacity:[1,0.4,1]}} transition={{repeat:Infinity,duration:1.4}} className="text-[9px]">ON</motion.span>}
+        </motion.button>
 
         <div className="flex items-center gap-2 text-[10px] font-mono bg-[#1E2530]/50 px-3 py-1.5 rounded-full border border-[#1E2530]">
           <span className={`w-2 h-2 rounded-full ${connected ? 'bg-[#34D399] animate-pulse' : 'bg-[#EF4444]'}`}/>

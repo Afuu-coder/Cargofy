@@ -7,9 +7,9 @@
  * AI Agent rerouting decisions auto-fly the camera to the affected truck.
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CargoMap3D } from '../../components/CargoMap3D';
+import { CargoMap3D, type CargoMap3DHandle } from '../../components/CargoMap3D';
 import { getShipments, type Shipment } from '../../lib/api';
 import { ArrowLeft, Battery, Thermometer, DoorOpen, Zap, Bot, BellOff, Package, AlertTriangle, ShieldAlert, Link, ArrowRight } from 'lucide-react';
 
@@ -28,6 +28,8 @@ export function Fleet3DView() {
   const [agentLog, setAgentLog]     = useState<AgentEvent[]>([]);
   const [loading, setLoading]       = useState(true);
   const [crisisRunning, setCrisisRunning] = useState(false);
+  const [selectedTruck, setSelectedTruck] = useState<string|null>(null);
+  const mapHandle = useRef<CargoMap3DHandle>(null);
   const [toasts, setToasts]         = useState<Array<{ id: string; msg: string; color: string }>>([]);
 
   const addToast = (msg: string, color = '#4DD9AC') => {
@@ -196,11 +198,55 @@ export function Fleet3DView() {
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
 
         {/* ── 3D Map (main area) ─────────────────────────────────────────── */}
-        <div style={{ flex: 1, position: 'relative' }}>
+        <div style={{ flex: 1, position: 'relative', display: 'flex' }}>
+
+          {/* Fleet truck list — click triggers cinematic camera swoop */}
+          <div style={{ width:180, background:'#080B12', borderRight:'1px solid #1E2530', overflowY:'auto', flexShrink:0 }}>
+            <div style={{ padding:'10px 12px', borderBottom:'1px solid #1E2530', fontSize:10, fontWeight:700, color:'#64748B', fontFamily:'monospace', letterSpacing:1 }}>
+              🚚 FLEET — {trucks.length || 5} ACTIVE
+            </div>
+            {(trucks.length > 0 ? trucks : [
+              { shipment_code:'SHP-MH-001', risk_category:'CRITICAL', product_type:'milk',   lat:19.076, lng:72.877 },
+              { shipment_code:'SHP-DL-002', risk_category:'MEDIUM',   product_type:'pharma', lat:28.613, lng:77.209 },
+              { shipment_code:'SHP-KA-003', risk_category:'LOW',      product_type:'fish',   lat:12.971, lng:77.594 },
+              { shipment_code:'SHP-TN-004', risk_category:'HIGH',     product_type:'fruits', lat:13.082, lng:80.270 },
+              { shipment_code:'SHP-WB-005', risk_category:'LOW',      product_type:'dairy',  lat:22.572, lng:88.363 },
+            ] as any[]).map((t: any) => {
+              const col = t.risk_category==='CRITICAL'?'#EF4444':t.risk_category==='HIGH'?'#F97316':t.risk_category==='MEDIUM'?'#FBBF24':'#34D399';
+              const isSel = selectedTruck === t.shipment_code;
+              return (
+                <button key={t.shipment_code} onClick={() => {
+                  setSelectedTruck(t.shipment_code);
+                  mapHandle.current?.focusTruck(t.shipment_code);
+                }} style={{
+                  width:'100%', textAlign:'left', padding:'10px 12px',
+                  background: isSel ? `${col}12` : 'transparent',
+                  borderBottom:'1px solid #1E2530',
+                  borderLeft: isSel ? `3px solid ${col}` : '3px solid transparent',
+                  cursor:'pointer', display:'flex', flexDirection:'column', gap:3,
+                }}>
+                  <div style={{ fontFamily:'monospace', fontSize:10, fontWeight:700, color: isSel ? col : '#F1F5F9' }}>{t.shipment_code}</div>
+                  <div style={{ fontSize:9, color:'#64748B' }}>{t.product_type?.toUpperCase()}</div>
+                  <div style={{ fontSize:9, fontWeight:700, color:col }}>{t.risk_category}</div>
+                  {isSel && <div style={{ fontSize:8, color:'#4DD9AC', marginTop:2 }}>🎬 TRACKING — GOD MODE</div>}
+                </button>
+              );
+            })}
+            {selectedTruck && (
+              <button onClick={() => { setSelectedTruck(null); mapHandle.current?.resetCamera(); }}
+                style={{ width:'100%', padding:'8px 12px', fontSize:9, color:'#64748B', background:'#111827', borderTop:'1px solid #1E2530', cursor:'pointer' }}>
+                ↩ Reset Camera
+              </button>
+            )}
+          </div>
+
+          <div style={{ flex:1, position:'relative' }}>
           <CargoMap3D
+            ref={mapHandle}
             trucks={trucks.length > 0 ? trucks : undefined}
             onRerouteAlert={handleRerouteAlert}
           />
+          </div>
         </div>
 
         {/* ── Agent Log Sidebar ─────────────────────────────────────────── */}
