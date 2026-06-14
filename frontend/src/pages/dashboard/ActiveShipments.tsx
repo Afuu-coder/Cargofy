@@ -356,7 +356,8 @@ export function ActiveShipments() {
               null,
               {icon: <Navigation size={18} />, label:'Live Tracking',href:'/live-tracking'},
               {icon: <ShieldAlert size={18} />, label:'Risk & Interventions',href:'/risk',badge:(critical.length+high.length)||undefined,badgeRed:true},
-              {icon: <Zap size={18} />, label:'IoT Simulator',href:'/iot-simulator'},
+              {icon: <Zap size={18} />, label:'Mobile IoT Node',href:'/mobile'},
+
               null,
               {icon: <BarChart3 size={18} />, label:'Analytics',href:'/cargofy-analytics'},
               {icon: <Database size={18} />, label:'Fleet & Drivers',href:'/fleet'},

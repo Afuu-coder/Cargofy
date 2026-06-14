@@ -17,28 +17,279 @@ const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string;
 // Types & Constants
 // ─────────────────────────────────────────────────────────────────────────────
 interface SimState {
-  temp:     number;  // cargo temp °C
+  temp:     number;  // cargo temp °C  (DS18B20+ probe)
   ambient:  number;  // ambient temp °C
-  humidity: number;  // %
+  humidity: number;  // % (AM2302/DHT22)
   delay:    number;  // minutes
   reefer:   number;  // % health 0-100
-  doorOpen: number;  // minutes open this trip
-  battery:  number;  // %
+  doorOpen: number;  // minutes open this trip (Reed switch MK24)
+  battery:  number;  // % (LiPo JST-PH-2P via TC4056A)
   gpsStale: number;  // minutes since last fix
+  doorClosed: boolean; // Reed switch realtime state
 }
 
 interface TelemetryPoint { t: number; temp: number; ambient: number; humidity: number; }
 interface SavedScenario   { name: string; state: SimState; ts: number; }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ESP32 PCB Digital Twin — based on Cargofy_IoT_Node BOM
+// Components: U1=ESP32-WROOM-32D, J3=DS18B20+, J4=DHT22, U2=TC4056A, U4=AMS1117-3.3
+//             BT1=JST-PH-2P LiPo, J5=Reed switch MK24, D3=Green LED, D4=Red LED
+//             J1=USB-B-Micro, SW1=Reset, SW2=Boot
+// ─────────────────────────────────────────────────────────────────────────────
+function Esp32PcbTwin({ state, risk, battery }: {
+  state: SimState;
+  risk: { score: number; cat: string };
+  battery: number;
+}) {
+  const greenLed = battery > 20 && state.temp < 15;   // D3: connected status
+  const redLed   = risk.score > 50 || state.temp > 8;  // D4: alert/error
+  const wifiStrength = state.gpsStale < 5 ? 3 : state.gpsStale < 10 ? 2 : 1;
+  const usbPowered = false; // not charging in transit
+
+  const tempColor  = state.temp > 8 ? '#EF4444' : state.temp > 6 ? '#FBBF24' : '#4DD9AC';
+  const humColor   = state.humidity > 80 ? '#EF4444' : state.humidity > 70 ? '#FBBF24' : '#60A5FA';
+  const batColor   = battery < 20 ? '#EF4444' : battery < 40 ? '#FBBF24' : '#34D399';
+
+  return (
+    <div className="relative w-full" style={{ userSelect: 'none' }}>
+      {/* PCB board */}
+      <svg viewBox="0 0 340 460" className="w-full" style={{ maxHeight: 440 }}>
+        {/* PCB substrate */}
+        <rect x={8} y={8} width={324} height={444} rx={10} fill="#0A3323" stroke="#1A5C3A" strokeWidth={2}/>
+        {/* Board edge cuts (from KiCad Edge.Cuts) */}
+        <rect x={14} y={14} width={312} height={432} rx={8} fill="none" stroke="#2E8B57" strokeWidth={1.5} strokeDasharray="6,3"/>
+        {/* Silk screen text */}
+        <text x={170} y={30} textAnchor="middle" fill="#2E8B57" fontSize={8} fontFamily="monospace" fontWeight="bold">CARGOFY IoT NODE v1.0</text>
+        <text x={170} y={42} textAnchor="middle" fill="#1A5C3A" fontSize={6} fontFamily="monospace">ESP32-WROOM-32D · KiCad 10.0</text>
+
+        {/* ── U1: ESP32-WROOM-32D (large module, center-top) ── */}
+        <g>
+          <rect x={90} y={55} width={160} height={110} rx={4} fill="#1A1A2E" stroke="#4DD9AC" strokeWidth={1.5}/>
+          <rect x={96} y={61} width={148} height={98} rx={2} fill="#0D0D1F" stroke="#374151" strokeWidth={0.5}/>
+          {/* Antenna trace */}
+          <rect x={226} y={58} width={24} height={4} rx={1} fill="#4DD9AC" opacity={0.7}/>
+          <text x={170} y={105} textAnchor="middle" fill="#4DD9AC" fontSize={9} fontFamily="monospace" fontWeight="bold">ESP32-WROOM-32D</text>
+          <text x={170} y={118} textAnchor="middle" fill="#64748B" fontSize={6} fontFamily="monospace">U1 · 240MHz · Wi-Fi+BT</text>
+          {/* GPIO pin row */}
+          {Array.from({length:8},(_,i) => (
+            <rect key={i} x={96+i*18} y={153} width={8} height={12} rx={1} fill="#374151" stroke="#4DD9AC" strokeWidth={0.5}/>
+          ))}
+          {/* Wi-Fi signal indicator */}
+          {[0,1,2].map(i => (
+            <rect key={i} x={235+i*5} y={75-i*4} width={4} height={8+i*4} rx={1}
+              fill={i < wifiStrength ? '#4DD9AC' : '#1E2530'} opacity={0.9}/>
+          ))}
+          <text x={240} y={66} fill="#64748B" fontSize={5} fontFamily="monospace">WiFi</text>
+        </g>
+
+        {/* ── J3: DS18B20+ Temperature Probe (bottom-left) ── */}
+        <g>
+          <rect x={20} y={195} width={70} height={55} rx={3} fill="#111827" stroke={tempColor} strokeWidth={1.5}/>
+          {/* Probe cable */}
+          <path d="M 20 222 L 4 222" stroke={tempColor} strokeWidth={2} strokeLinecap="round"/>
+          <circle cx={4} cy={222} r={4} fill={tempColor} opacity={0.7}/>
+          <text x={55} y={217} textAnchor="middle" fill={tempColor} fontSize={7} fontFamily="monospace" fontWeight="bold">DS18B20+</text>
+          <text x={55} y={228} textAnchor="middle" fill="#64748B" fontSize={6} fontFamily="monospace">J3 · 1-Wire</text>
+          <text x={55} y={241} textAnchor="middle" fontSize={8} fontFamily="monospace" fontWeight="bold" fill={tempColor}>
+            {state.temp.toFixed(1)}°C
+          </text>
+          {/* Pull-up resistor R15 */}
+          <rect x={26} y={245} width={18} height={6} rx={1} fill="#374151" stroke="#4A5568" strokeWidth={0.5}/>
+          <text x={35} y={251} textAnchor="middle" fill="#4A5568" fontSize={4} fontFamily="monospace">R15 4k7</text>
+        </g>
+
+        {/* ── J4: AM2302/DHT22 Humidity+Temp (bottom-right area) ── */}
+        <g>
+          <rect x={250} y={195} width={70} height={55} rx={3} fill="#111827" stroke={humColor} strokeWidth={1.5}/>
+          <text x={285} y={217} textAnchor="middle" fill={humColor} fontSize={7} fontFamily="monospace" fontWeight="bold">AM2302</text>
+          <text x={285} y={228} textAnchor="middle" fill="#64748B" fontSize={6} fontFamily="monospace">J4 · DHT22</text>
+          <text x={285} y={241} textAnchor="middle" fontSize={8} fontFamily="monospace" fontWeight="bold" fill={humColor}>
+            {state.humidity}%RH
+          </text>
+        </g>
+
+        {/* Signal lines: ESP32 → DS18B20 + DHT22 */}
+        <path d="M 90 160 L 55 195" stroke={tempColor} strokeWidth={1} strokeDasharray="3,2" opacity={0.6}/>
+        <path d="M 230 160 L 285 195" stroke={humColor} strokeWidth={1} strokeDasharray="3,2" opacity={0.6}/>
+
+        {/* ── J5: Reed Switch MK24 (door sensor) ── */}
+        <g>
+          <rect x={20} y={270} width={70} height={40} rx={3} fill="#111827"
+            stroke={state.doorClosed ? '#34D399' : '#EF4444'} strokeWidth={1.5}/>
+          <text x={55} y={287} textAnchor="middle" fill={state.doorClosed ? '#34D399' : '#EF4444'} fontSize={7} fontFamily="monospace" fontWeight="bold">REED MK24</text>
+          <text x={55} y={298} textAnchor="middle" fill="#64748B" fontSize={6} fontFamily="monospace">J5 · Door</text>
+          <text x={55} y={307} textAnchor="middle" fontSize={7} fontFamily="monospace" fill={state.doorClosed ? '#34D399' : '#EF4444'}>
+            {state.doorClosed ? 'CLOSED ✓' : 'OPEN ⚠'}
+          </text>
+        </g>
+
+        {/* ── U2: TC4056A LiPo Charger ── */}
+        <g>
+          <rect x={130} y={195} width={80} height={40} rx={3} fill="#111827" stroke="#8B5CF6" strokeWidth={1}/>
+          <text x={170} y={213} textAnchor="middle" fill="#8B5CF6" fontSize={7} fontFamily="monospace" fontWeight="bold">TC4056A</text>
+          <text x={170} y={224} textAnchor="middle" fill="#64748B" fontSize={6} fontFamily="monospace">U2 · LiPo Charger</text>
+          <text x={170} y={232} textAnchor="middle" fontSize={6} fontFamily="monospace" fill={usbPowered ? '#34D399' : '#4A5568'}>
+            {usbPowered ? 'Charging' : 'On Battery'}
+          </text>
+        </g>
+
+        {/* ── U4: AMS1117-3.3V Regulator ── */}
+        <g>
+          <rect x={130} y={248} width={80} height={30} rx={3} fill="#111827" stroke="#F59E0B" strokeWidth={1}/>
+          <text x={170} y={262} textAnchor="middle" fill="#F59E0B" fontSize={7} fontFamily="monospace" fontWeight="bold">AMS1117-3.3</text>
+          <text x={170} y={273} textAnchor="middle" fill="#64748B" fontSize={5} fontFamily="monospace">U4 · 3.3V Rail</text>
+        </g>
+
+        {/* ── BT1: LiPo Battery Connector ── */}
+        <g>
+          <rect x={250} y={270} width={70} height={40} rx={3} fill="#111827" stroke={batColor} strokeWidth={1.5}/>
+          <text x={285} y={286} textAnchor="middle" fill={batColor} fontSize={7} fontFamily="monospace" fontWeight="bold">JST-PH 2P</text>
+          <text x={285} y={297} textAnchor="middle" fill="#64748B" fontSize={6} fontFamily="monospace">BT1 · LiPo</text>
+          <text x={285} y={307} textAnchor="middle" fontSize={8} fontFamily="monospace" fontWeight="bold" fill={batColor}>
+            {battery}%
+          </text>
+          {/* Battery bar */}
+          <rect x={258} y={310} width={54} height={5} rx={2} fill="#1E2530"/>
+          <rect x={258} y={310} width={Math.round(battery*0.54)} height={5} rx={2} fill={batColor}/>
+        </g>
+
+        {/* ── D3: Green LED (connected status) ── */}
+        <g>
+          <circle cx={50} cy={350} r={8} fill={greenLed ? '#34D399' : '#1A3D2B'}
+            stroke="#34D399" strokeWidth={1}
+            style={greenLed ? {filter:'drop-shadow(0 0 6px #34D399)'} : {}}/>
+          <text x={50} y={368} textAnchor="middle" fill="#34D399" fontSize={5} fontFamily="monospace">D3 GRN</text>
+          <text x={50} y={375} textAnchor="middle" fill="#64748B" fontSize={5} fontFamily="monospace">CONN</text>
+          {greenLed && <circle cx={50} cy={350} r={14} fill="#34D399" opacity={0.15}/>}
+        </g>
+
+        {/* ── D4: Red LED (alert/error) ── */}
+        <g>
+          <circle cx={80} cy={350} r={8} fill={redLed ? '#EF4444' : '#3D1A1A'}
+            stroke="#EF4444" strokeWidth={1}
+            style={redLed ? {filter:'drop-shadow(0 0 6px #EF4444)'} : {}}/>
+          <text x={80} y={368} textAnchor="middle" fill="#EF4444" fontSize={5} fontFamily="monospace">D4 RED</text>
+          <text x={80} y={375} textAnchor="middle" fill="#64748B" fontSize={5} fontFamily="monospace">ALERT</text>
+          {redLed && <circle cx={80} cy={350} r={14} fill="#EF4444" opacity={0.15}/>}
+        </g>
+
+        {/* ── J1: USB-B-Micro ── */}
+        <g>
+          <rect x={140} y={340} width={50} height={28} rx={3} fill="#111827" stroke="#60A5FA" strokeWidth={1}/>
+          <rect x={152} y={346} width={26} height={16} rx={2} fill="#1E3A5F" stroke="#60A5FA" strokeWidth={0.5}/>
+          <text x={165} y={378} textAnchor="middle" fill="#60A5FA" fontSize={6} fontFamily="monospace">J1 · USB MICRO</text>
+          <text x={165} y={386} textAnchor="middle" fill="#4A5568" fontSize={5} fontFamily="monospace">PROG + CHARGE</text>
+        </g>
+
+        {/* ── SW1: Reset + SW2: Boot ── */}
+        <g>
+          <rect x={240} y={345} width={28} height={18} rx={3} fill="#111827" stroke="#374151" strokeWidth={1}/>
+          <text x={254} y={357} textAnchor="middle" fill="#94A3B8" fontSize={6} fontFamily="monospace">SW1</text>
+          <text x={254} y={367} textAnchor="middle" fill="#64748B" fontSize={5} fontFamily="monospace">RESET</text>
+        </g>
+        <g>
+          <rect x={278} y={345} width={28} height={18} rx={3} fill="#111827" stroke="#374151" strokeWidth={1}/>
+          <text x={292} y={357} textAnchor="middle" fill="#94A3B8" fontSize={6} fontFamily="monospace">SW2</text>
+          <text x={292} y={367} textAnchor="middle" fill="#64748B" fontSize={5} fontFamily="monospace">BOOT</text>
+        </g>
+
+        {/* ── Decoupling caps + resistors (passive components) ── */}
+        {[[120,310,'C2','10µF'],[170,310,'C5','100nF'],[220,310,'C10','10µF']].map(([x,y,ref,val])=>(
+          <g key={String(ref)}>
+            <rect x={Number(x)-8} y={Number(y)} width={16} height={10} rx={1} fill="#1A2A3A" stroke="#374151" strokeWidth={0.5}/>
+            <text x={Number(x)} y={Number(y)+7} textAnchor="middle" fill="#374151" fontSize={4} fontFamily="monospace">{ref}</text>
+          </g>
+        ))}
+
+        {/* Status bar */}
+        <rect x={14} y={396} width={312} height={1} fill="#1E2530"/>
+        <text x={20} y={412} fill="#4A5568" fontSize={6} fontFamily="monospace">SIM · {new Date().toLocaleTimeString()}</text>
+        <text x={170} y={412} textAnchor="middle" fill={greenLed ? '#34D399' : '#EF4444'} fontSize={6} fontFamily="monospace" fontWeight="bold">
+          {greenLed ? '● CONNECTED' : '● ALERT'}
+        </text>
+        <text x={320} y={412} textAnchor="end" fill="#4A5568" fontSize={6} fontFamily="monospace">v1.0</text>
+      </svg>
+
+      {/* Component legend */}
+      <div className="grid grid-cols-2 gap-1 mt-2 text-[9px] text-[#64748B]">
+        {[
+          { c:'#4DD9AC', l:'ESP32-WROOM-32D (U1)' },
+          { c:'#EF4444', l:'DS18B20+ Probe (J3)' },
+          { c:'#60A5FA', l:'AM2302/DHT22 (J4)' },
+          { c:'#8B5CF6', l:'TC4056A Charger (U2)' },
+          { c:'#F59E0B', l:'AMS1117-3.3V (U4)' },
+          { c:'#34D399', l:'Reed Switch MK24 (J5)' },
+        ].map(({c,l}) => (
+          <div key={l} className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-full flex-shrink-0" style={{background:c}}/>
+            <span>{l}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ESP32 Firmware Serial Log
+// ─────────────────────────────────────────────────────────────────────────────
+function FirmwareLog({ state, risk, battery }: { state: SimState; risk: { score:number; cat:string }; battery: number }) {
+  const [logs, setLogs] = useState<string[]>([]);
+  const logRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const ts = new Date().toISOString().slice(11,23);
+    const uptime = Math.floor(Date.now()/1000 % 86400);
+    const newLogs = [
+      `[${ts}] [I] Boot: Cargofy IoT Node v1.0 (ESP32-WROOM-32D)`,
+      `[${ts}] [I] WiFi: Connected · RSSI=${state.gpsStale<5?-62:-80}dBm`,
+      `[${ts}] [I] DS18B20: OneWire addr=28FF4C2A01 · ${state.temp.toFixed(2)}°C`,
+      `[${ts}] [I] DHT22: OK · Temp=${state.temp.toFixed(1)}°C Hum=${state.humidity}%`,
+      `[${ts}] [I] Reed[J5]: ${state.doorClosed ? 'CLOSED(0)' : 'OPEN(1)'} · door_min=${state.doorOpen}`,
+      `[${ts}] [I] LiPo[BT1]: ${battery}% · ${battery>80?'FULL':battery>40?'OK':'LOW'} · AMS1117 3.31V`,
+      `[${ts}] [I] GPS: lat=26.1445 lng=91.7362 stale=${state.gpsStale}m`,
+      `[${ts}] [I] RiskEst: score=${risk.score} cat=${risk.cat} delay=${state.delay}m`,
+      `[${ts}] [${risk.score>75?'W':'I'}] ${risk.score>75?'ALERT: Temp breach! Publishing to MQTT...':'Telemetry OK · Publishing to MQTT...'}`,
+      `[${ts}] [I] MQTT → cargofy/telemetry · QoS=1 · ${JSON.stringify({
+        t:state.temp.toFixed(1), h:state.humidity, bat:battery, door:state.doorClosed?0:1, risk:risk.score
+      })}`,
+      `[${ts}] [I] D3(Green)=${battery>20&&state.temp<15?1:0} D4(Red)=${risk.score>50?1:0}`,
+      `[${ts}] [I] Sleep: 30s (deep-sleep mode to save LiPo)`,
+    ];
+    setLogs(prev => [...prev.slice(-80), '', ...newLogs]);
+  }, [state.temp, state.humidity, state.doorClosed, risk.score]);
+
+  useEffect(() => {
+    if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
+  }, [logs]);
+
+  return (
+    <div ref={logRef} className="flex-1 overflow-y-auto bg-[#060A06] rounded-lg p-3 font-mono text-[9px] leading-relaxed"
+      style={{ minHeight: 200, maxHeight: 380 }}>
+      {logs.map((line, i) => (
+        <div key={i} className={
+          line.includes('[W]') ? 'text-[#FBBF24]' :
+          line.includes('ALERT') ? 'text-[#EF4444]' :
+          line.includes('Boot') ? 'text-[#A78BFA]' :
+          line.startsWith('[') ? 'text-[#34D399]' : 'text-[#1E2530]'
+        }>{line || '\u00A0'}</div>
+      ))}
+      <div className="text-[#34D399] animate-pulse">█</div>
+    </div>
+  );
+}
+
+
 const PRESETS: Record<string, { label: string; icon: string; state: SimState }> = {
-  normal:       { label:'Normal Transit',    icon:'🟢', state:{ temp:4.0,  ambient:28, humidity:60, delay:0,   reefer:100, doorOpen:0, battery:95, gpsStale:0  }},
-  mild_delay:   { label:'Mild Delay',        icon:'🟡', state:{ temp:4.5,  ambient:30, humidity:65, delay:20,  reefer:100, doorOpen:0, battery:90, gpsStale:0  }},
-  heatwave:     { label:'Heatwave',          icon:'🔥', state:{ temp:7.2,  ambient:42, humidity:68, delay:15,  reefer:85,  doorOpen:0, battery:80, gpsStale:2  }},
-  reefer_fail:  { label:'Reefer Failure',    icon:'❄️',  state:{ temp:12.0, ambient:38, humidity:72, delay:45,  reefer:20,  doorOpen:5, battery:70, gpsStale:5  }},
-  traffic:      { label:'Traffic',           icon:'🚧', state:{ temp:5.8,  ambient:36, humidity:66, delay:60,  reefer:95,  doorOpen:0, battery:85, gpsStale:1  }},
-  door_open:    { label:'Door Open',         icon:'🚪', state:{ temp:11.0, ambient:39, humidity:78, delay:10,  reefer:90,  doorOpen:20, battery:88, gpsStale:0 }},
-  humidity_surge:{ label:'Humidity Surge',   icon:'💧', state:{ temp:5.5,  ambient:34, humidity:89, delay:5,   reefer:92,  doorOpen:3, battery:82, gpsStale:1  }},
-  multi_crit:   { label:'Multi-Factor CRIT', icon:'🔴', state:{ temp:14.0, ambient:44, humidity:85, delay:90,  reefer:15,  doorOpen:30, battery:20, gpsStale:15 }},
+  normal:       { label:'Normal Transit',    icon:'🟢', state:{ temp:4.0,  ambient:28, humidity:60, delay:0,   reefer:100, doorOpen:0,  battery:95, gpsStale:0,  doorClosed:true  }},
+  mild_delay:   { label:'Mild Delay',        icon:'🟡', state:{ temp:4.5,  ambient:30, humidity:65, delay:20,  reefer:100, doorOpen:0,  battery:90, gpsStale:0,  doorClosed:true  }},
+  heatwave:     { label:'Heatwave',          icon:'🔥', state:{ temp:7.2,  ambient:42, humidity:68, delay:15,  reefer:85,  doorOpen:0,  battery:80, gpsStale:2,  doorClosed:true  }},
+  reefer_fail:  { label:'Reefer Failure',    icon:'❄️',  state:{ temp:12.0, ambient:38, humidity:72, delay:45,  reefer:20,  doorOpen:5,  battery:70, gpsStale:5,  doorClosed:false }},
+  traffic:      { label:'Traffic',           icon:'🚧', state:{ temp:5.8,  ambient:36, humidity:66, delay:60,  reefer:95,  doorOpen:0,  battery:85, gpsStale:1,  doorClosed:true  }},
+  door_open:    { label:'Door Open',         icon:'🚪', state:{ temp:11.0, ambient:39, humidity:78, delay:10,  reefer:90,  doorOpen:20, battery:88, gpsStale:0,  doorClosed:false }},
+  humidity_surge:{ label:'Humidity Surge',   icon:'💧', state:{ temp:5.5,  ambient:34, humidity:89, delay:5,   reefer:92,  doorOpen:3,  battery:82, gpsStale:1,  doorClosed:true  }},
+  multi_crit:   { label:'Multi-Factor CRIT', icon:'🔴', state:{ temp:14.0, ambient:44, humidity:85, delay:90,  reefer:15,  doorOpen:30, battery:20, gpsStale:15, doorClosed:false }},
 };
 
 const PRODUCT_ICONS: Record<string,string> = { dairy:'🥛',milk:'🥛',seafood:'🐟',fish:'🐟',produce:'🥦',frozen:'🧊',pharma:'💊',fruits:'🍎',meat:'🥩',other:'📦' };
@@ -355,6 +606,9 @@ const SIM_ROUTES = [
 
 const DEFAULT_STATE: SimState = PRESETS.normal.state;
 
+type RightTab = 'risk' | 'pcb' | 'firmware';
+
+
 export function IoTSimulator() {
   const navigate = useNavigate();
 
@@ -380,6 +634,8 @@ export function IoTSimulator() {
   const [sessionId,    setSessionId]    = useState<string>(`sim_${Math.random().toString(36).slice(2,10)}`);
   const [curLat,       setCurLat]       = useState<number|undefined>(undefined);
   const [curLng,       setCurLng]       = useState<number|undefined>(undefined);
+  const [rightTab,     setRightTab]     = useState<RightTab>('risk');
+
 
   const simRef   = useRef<ReturnType<typeof setInterval>>(undefined);
   const apiRef   = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -690,13 +946,13 @@ export function IoTSimulator() {
                   className="text-[9px] text-[#64748B] border border-[#1E2530] px-2 py-0.5 rounded hover:text-white transition-colors">↺ Reset</button>
               </div>
 
-              <Slider icon="🌡" label="Cargo Temperature" value={simState.temp} min={-5} max={25} step={0.1} unit="°C"
+              <Slider icon="🌡" label="Cargo Temp (DS18B20+)" value={simState.temp} min={-5} max={25} step={0.1} unit="°C"
                 safeMin={tMin} safeMax={tMax} warnThresh={tMax} dangerThresh={tMax + 2}
                 onChange={v=>updateState({temp:v})}/>
-              <Slider icon="🌤" label="Ambient Temperature" value={simState.ambient} min={10} max={50} step={1} unit="°C"
+              <Slider icon="🌤" label="Ambient Temp" value={simState.ambient} min={10} max={50} step={1} unit="°C"
                 warnThresh={32} dangerThresh={40}
                 onChange={v=>updateState({ambient:v})}/>
-              <Slider icon="💧" label="Humidity" value={simState.humidity} min={30} max={100} step={1} unit="%"
+              <Slider icon="💧" label="Humidity (AM2302)" value={simState.humidity} min={30} max={100} step={1} unit="%"
                 warnThresh={75} dangerThresh={85}
                 onChange={v=>updateState({humidity:v})}/>
               <Slider icon="⏱" label="Transit Delay" value={simState.delay} min={0} max={120} step={1} unit="m"
@@ -705,15 +961,34 @@ export function IoTSimulator() {
               <Slider icon="❄️" label="Reefer Health" value={simState.reefer} min={0} max={100} step={1} unit="%"
                 safeMin={80} safeMax={100} warnThresh={79} dangerThresh={50}
                 onChange={v=>{ /* invert for reefer — lower is danger */ updateState({reefer:v}); }}/>
-              <Slider icon="🚪" label="Door Open Time" value={simState.doorOpen} min={0} max={60} step={1} unit="m"
+              <Slider icon="⏱" label="Door Open Time" value={simState.doorOpen} min={0} max={60} step={1} unit="m"
                 warnThresh={5} dangerThresh={20}
                 onChange={v=>updateState({doorOpen:v})}/>
-              <Slider icon="🔋" label="Sensor Battery" value={simState.battery} min={0} max={100} step={1} unit="%"
+              <Slider icon="🔋" label="Battery (LiPo)" value={simState.battery} min={0} max={100} step={1} unit="%"
                 warnThresh={29} dangerThresh={15}
                 onChange={v=>updateState({battery:v})}/>
-              <Slider icon="📡" label="GPS Stale Time" value={simState.gpsStale} min={0} max={30} step={1} unit="m"
+              <Slider icon="📡" label="GPS Stale" value={simState.gpsStale} min={0} max={30} step={1} unit="m"
                 warnThresh={5} dangerThresh={15}
                 onChange={v=>updateState({gpsStale:v})}/>
+              {/* Reed switch toggle (J5 MK24) */}
+              <div className="flex items-center justify-between">
+                <label className="text-xs text-[#CBD5E1] flex items-center gap-1.5">🚪 Reed Switch (J5 MK24)</label>
+                <button
+                  onClick={() => updateState({ doorClosed: !simState.doorClosed })}
+                  className={`relative inline-flex h-5 w-9 rounded-full border transition-colors duration-200 ${
+                    simState.doorClosed
+                      ? 'bg-[#34D399]/20 border-[#34D399]/40'
+                      : 'bg-[#EF4444]/20 border-[#EF4444]/40'
+                  }`}>
+                  <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full transition-all ${
+                    simState.doorClosed ? 'translate-x-4 bg-[#34D399]' : 'translate-x-0 bg-[#EF4444]'
+                  }`}/>
+                </button>
+                <span className={`text-[9px] font-bold ${simState.doorClosed ? 'text-[#34D399]' : 'text-[#EF4444]'}`}>
+                  {simState.doorClosed ? 'CLOSED' : 'OPEN'}
+                </span>
+              </div>
+
             </div>
 
             {/* Saved scenarios */}
@@ -768,8 +1043,50 @@ export function IoTSimulator() {
         </div>
 
         {/* ── RIGHT: Risk Response ─────────────────────────────────────────── */}
-        <aside className="w-72 shrink-0 bg-[#0D1117] border-l border-[#1E2530] flex flex-col overflow-y-auto">
+        <aside className="w-72 shrink-0 bg-[#0D1117] border-l border-[#1E2530] flex flex-col overflow-hidden">
 
+          {/* Tab selector */}
+          <div className="flex border-b border-[#1E2530] shrink-0">
+            {([['risk','⚡ Risk'],['pcb','🔌 PCB'],['firmware','💻 Firmware']] as const).map(([tab,label])=>(
+              <button key={tab} onClick={()=>setRightTab(tab as RightTab)}
+                className={`flex-1 py-2.5 text-[10px] font-bold uppercase tracking-widest transition-colors border-b-2 ${
+                  rightTab===tab
+                    ? 'text-[#4DD9AC] border-[#4DD9AC] bg-[#4DD9AC]/05'
+                    : 'text-[#64748B] border-transparent hover:text-[#94A3B8]'
+                }`}>{label}</button>
+            ))}
+          </div>
+
+          <div className="flex-1 overflow-y-auto">
+          {rightTab === 'pcb' && (
+            <div className="p-3">
+              <div className="text-[10px] text-[#64748B] uppercase tracking-widest font-semibold mb-2 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#4DD9AC] animate-pulse"/>
+                Cargofy IoT Node · PCB Digital Twin
+              </div>
+              <div className="text-[9px] text-[#4A5568] mb-3">KiCad v10 · ESP32-WROOM-32D · 1.6mm FR4 · 2-layer</div>
+              <Esp32PcbTwin state={simState} risk={{score:finalScore,cat:finalCat}} battery={simState.battery}/>
+            </div>
+          )}
+
+          {rightTab === 'firmware' && (
+            <div className="flex flex-col h-full p-3 gap-2">
+              <div className="flex items-center justify-between">
+                <div className="text-[10px] text-[#64748B] uppercase tracking-widest font-semibold flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#34D399] animate-pulse"/>
+                  ESP32 Serial Monitor (115200 baud)
+                </div>
+                <span className="text-[9px] text-[#4A5568]">GPIO1/TX → USB CH340</span>
+              </div>
+              <FirmwareLog state={simState} risk={{score:finalScore,cat:finalCat}} battery={simState.battery}/>
+              <div className="text-[9px] text-[#4A5568] mt-1">
+                Firmware: Cargofy-IoT-v1.0.bin · FreeRTOS · MQTT → Firebase RTDB
+              </div>
+            </div>
+          )}
+
+          {rightTab === 'risk' && (
+            <div>
           {/* Risk score gauge */}
           <div className="px-4 py-4 border-b border-[#1E2530]">
             <div className="flex items-center justify-between mb-2">
@@ -896,6 +1213,8 @@ export function IoTSimulator() {
               className="w-full bg-[#111827] border border-[#1E2530] text-[#64748B] hover:text-[#4DD9AC] hover:border-[#4DD9AC]/30 text-xs py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
               ⚡ Go to Risk Console →
             </button>
+          </div>
+          </div>)}
           </div>
         </aside>
       </div>

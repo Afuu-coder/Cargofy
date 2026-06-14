@@ -499,7 +499,8 @@ export function ControlTower() {
             <SectionLabel label="MONITORING" />
             <NavItem icon={<Navigation size={16}/>}      label="Live Tracking"        href="/live-tracking" />
             <NavItem icon={<ShieldAlert size={16}/>}     label="Risk & Interventions" href="/risk"              badge={critical.length + high.length} badgeColor="#EF4444" />
-            <NavItem icon={<Zap size={16}/>}             label="IoT Simulator"        href="/iot-simulator" />
+            <NavItem icon={<Zap size={16}/>}             label="Mobile IoT Node"       href="/mobile" />
+
             <SectionLabel label="INTELLIGENCE" />
             <NavItem icon={<BarChart3 size={16}/>}       label="Analytics"            href="/cargofy-analytics" />
             <NavItem icon={<Database size={16}/>}        label="Fleet & Drivers"      href="/fleet" />

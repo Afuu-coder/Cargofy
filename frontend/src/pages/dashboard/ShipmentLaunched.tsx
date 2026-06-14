@@ -193,7 +193,7 @@ export function ShipmentLaunched() {
 
               {/* Action Buttons */}
               <div className="grid grid-cols-2 gap-3">
-                <button onClick={() => navigate('/iot-simulator', { state: { shipmentCode } })}
+                <button onClick={() => navigate('/mobile', { state: { shipmentCode } })}
                   className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold text-[#080B12] transition-all hover:opacity-90 hover:scale-[0.98]"
                   style={{ background: 'linear-gradient(135deg, #4DD9AC, #3B82F6)' }}>
                   <Play size={15} /> Start Simulation

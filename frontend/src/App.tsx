@@ -21,7 +21,8 @@ import { CargofyAnalytics }     from './pages/dashboard/CargofyAnalytics';
 import { CreateShipmentBasics } from './pages/dashboard/CreateShipmentBasics';
 import { CreateShipmentReview } from './pages/dashboard/CreateShipmentReview';
 import { FleetAndDrivers }      from './pages/dashboard/FleetAndDrivers';
-import { IoTSimulator }         from './pages/dashboard/IoTSimulator';
+import { MobileIoTController }  from './pages/MobileIoTController';
+
 import { LiveTracking }         from './pages/dashboard/LiveTracking';
 import { RiskInterventions }    from './pages/dashboard/RiskInterventions';
 import { ShipmentDetail }       from './pages/dashboard/ShipmentDetail';
@@ -84,8 +85,9 @@ function App() {
         <Route path="/create-shipment/review" element={<ProtectedRoute><CreateShipmentReview /></ProtectedRoute>} />
         <Route path="/shipments/new"          element={<ProtectedRoute><CreateShipmentBasics /></ProtectedRoute>} />
         <Route path="/fleet"                  element={<ProtectedRoute><FleetAndDrivers /></ProtectedRoute>} />
-        <Route path="/iot-simulator"          element={<ProtectedRoute><IoTSimulator /></ProtectedRoute>} />
-        <Route path="/simulator"              element={<ProtectedRoute><IoTSimulator /></ProtectedRoute>} />
+        {/* /mobile — no auth guard, phone opens directly via QR */}
+        <Route path="/mobile"                element={<MobileIoTController />} />
+
         <Route path="/live-tracking"          element={<ProtectedRoute><LiveTracking /></ProtectedRoute>} />
         <Route path="/map"                    element={<ProtectedRoute><LiveTracking /></ProtectedRoute>} />
         <Route path="/risk"                   element={<ProtectedRoute><RiskInterventions /></ProtectedRoute>} />
