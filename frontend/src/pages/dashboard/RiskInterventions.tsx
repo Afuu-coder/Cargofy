@@ -394,12 +394,11 @@ function InterventionPanel({
           </div>
           <button onClick={() => navigate(`/shipments/${shipment.id}`)}
             className="text-[10px] text-[#64748B] hover:text-[#4DD9AC] border border-[#1E2530] px-2 py-1 rounded transition-colors">
-            Full Detail â†’
+            Full Detail →
           </button>
         </div>
         <div className="text-xs text-[#64748B]">
           {pIcon(shipment.product_type)} <span className="capitalize">{shipment.product_type}</span>
-          {' Â· '}{shipment.origin?.split(',')[0]} â†’ {shipment.destination?.split(',')[0]}
           {' · '}{shipment.origin?.split(',')[0]} → {shipment.destination?.split(',')[0]}
         </div>
       </div>

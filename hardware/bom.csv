@@ -1,0 +1,18 @@
+#,Reference,Component,Part Number,Qty,Footprint/Package,Purpose
+1,U1,ESP32-WROOM-32,ESP32-WROOM-32D,1,Module,MCU and Wi-Fi
+2,J3,Waterproof temperature probe,DS18B20+,1,3-pin header/probe,Cold-chain temperature
+3,J4,Humidity sensor,AM2302 / DHT22,1,4-pin header,Humidity
+4,U2,LiPo charger,TC4056A / TP4056,1,SOP-8,USB LiPo charging
+5,U4,3.3 V regulator,AMS1117-3.3 or low-Iq equivalent,1,SOT-223/SOT-23,3.3 V rail
+6,BT1,LiPo battery connector,JST-PH-2P,1,TH,3.7 V 2000 mAh battery input
+7,J5,Reed switch input,MK24,1,2-pin header,Door open/closed
+8,R15,Resistor,4.7 kOhm,1,0402,DS18B20 pullup
+9,"R18,R19",Resistor,100 kOhm,2,0402,Battery ADC divider
+10,"R13,R14",Resistor,330 Ohm,2,0402,LED current limit
+11,"C2,C7,C10",Capacitor,10 uF,3,0805,Bulk decoupling
+12,"C5,C6,C9,C11",Capacitor,100 nF,4,0402,High-frequency decoupling
+13,D3,Green LED,0402 green,1,0402,Connected status
+14,D4,Red LED,0402 red,1,0402,Alert/error status
+15,J1,Micro USB connector,USB-B-Micro,1,SMD/TH,Programming and charging
+16,SW1,Reset button,4x4 mm SMD tact,1,SMD,EN reset
+17,SW2,Boot button,4x4 mm SMD tact,1,SMD,GPIO0 boot mode

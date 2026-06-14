@@ -290,13 +290,27 @@ ${monsoonNote}${excNote}${recom}`;
 
 // ── Smart Allocation Guard Modal ───────────────────────────────────────────────────────────────
 const HIGH_VALUE_TYPES = ['pharma', 'frozen', 'seafood'];
-function SmartAllocationGuard({ vehicle, onClose }: { vehicle: Vehicle; onClose: () => void }) {
+function SmartAllocationGuard({ vehicle, onClose, driverId }: { vehicle: Vehicle; onClose: () => void; driverId?: string }) {
   const [product, setProduct] = useState('dairy');
+  const [assigning, setAssigning] = useState(false);
+  const [assignDone, setAssignDone] = useState(false);
   const health = vehicle.reeferHealth;
   const isHighValue = HIGH_VALUE_TYPES.includes(product);
   const isBlocked = isHighValue && health < 70;
   const riskLevel = health >= 85 ? 'LOW' : health >= 70 ? 'MODERATE' : 'HIGH';
   const riskColor = riskLevel === 'LOW' ? '#34D399' : riskLevel === 'MODERATE' ? '#FBBF24' : '#EF4444';
+
+  const handleConfirm = async () => {
+    if (!driverId) { onClose(); return; }
+    setAssigning(true);
+    try {
+      // POST /api/v1/fleet/drivers/{driverId}/assign {shipment_id: vehicle.activeShip || ''}
+      await assignDriver(driverId, vehicle.activeShip || vehicle.id);
+    } catch { /* silent — modal closes anyway */ }
+    setAssigning(false);
+    setAssignDone(true);
+    setTimeout(onClose, 1200);
+  };
 
   return (
     <AnimatePresence>
@@ -369,9 +383,13 @@ function SmartAllocationGuard({ vehicle, onClose }: { vehicle: Vehicle; onClose:
           <div className="flex gap-3">
             <button onClick={onClose} className="flex-1 text-sm py-2.5 rounded-xl border border-[#1E2530] text-[#64748B] hover:border-[#374151] transition-colors">Cancel</button>
             {!isBlocked && (
-              <motion.button whileHover={{scale:1.02}} whileTap={{scale:0.97}} onClick={onClose}
-                className="flex-1 text-sm py-2.5 rounded-xl bg-[#4DD9AC] text-[#003829] font-bold hover:bg-[#6EF6C7] transition-colors">
-                ✅ Confirm Assignment
+              <motion.button whileHover={{scale:1.02}} whileTap={{scale:0.97}} onClick={handleConfirm} disabled={assigning || assignDone}
+                className={`flex-1 text-sm py-2.5 rounded-xl font-bold transition-colors ${
+                  assignDone ? 'bg-[#34D399]/20 text-[#34D399] border border-[#34D399]/30' :
+                  assigning ? 'bg-[#4DD9AC]/40 text-[#003829] cursor-wait' :
+                  'bg-[#4DD9AC] text-[#003829] hover:bg-[#6EF6C7]'
+                }`}>
+                {assignDone ? '✅ Assigned!' : assigning ? '⏳ Assigning...' : '✅ Confirm Assignment'}
               </motion.button>
             )}
           </div>
@@ -1043,7 +1061,7 @@ export function FleetAndDrivers() {
     calibrationValid: true,
     lastService: lv.last_service_date ?? '—',
     nextService: lv.next_service_date ?? '—',
-    serviceOverdue: false,
+    serviceOverdue: lv.next_service_date ? new Date(lv.next_service_date) < new Date() : false,
     currentTemp: lv._live?.temperature,
     avgTempStability: `${lv.avg_temp_stability ?? 0}`,
     doorSeal: true,
@@ -1089,7 +1107,7 @@ export function FleetAndDrivers() {
       {/* Modals */}
       {showAddDriver  && <AddDriverModal  onClose={()=>setShowAddDriver(false)}/>}
       {showAddVehicle && <AddVehicleModal onClose={()=>setShowAddVehicle(false)}/>}
-  {allocGuardVehicle && <SmartAllocationGuard vehicle={allocGuardVehicle} onClose={()=>setAllocGuardVehicle(null)}/>}
+  {allocGuardVehicle && <SmartAllocationGuard vehicle={allocGuardVehicle} driverId={selDriver?.id} onClose={()=>setAllocGuardVehicle(null)}/>}
 
       {/* ── Top Nav ───────────────────────────────────────────────── */}
       <header className="shrink-0 bg-[#0A0D14] border-b border-[#1E2530] px-5 py-3 flex items-center gap-4 z-40">
