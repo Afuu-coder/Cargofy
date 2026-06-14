@@ -2,7 +2,7 @@ import sys
 import os
 
 interventions_content = """\"\"\"
-Axon — Risk & Interventions Router (axon-risk-svc + axon-intervention-svc)
+Cargofy — Risk & Interventions Router (cargofy-risk-svc + cargofy-intervention-svc)
 All blueprint REST endpoints for the Risk & Interventions screen.
 
 Endpoints:
@@ -500,7 +500,7 @@ async def trigger_agent(
     }
 """
 
-with open('c:/Users/afjal/Desktop/Cargofy/Axon/backend/app/routers/interventions.py', 'w', encoding='utf-8') as f:
+with open('c:/Users/afjal/Desktop/Cargofy/Cargofy/backend/app/routers/interventions.py', 'w', encoding='utf-8') as f:
     f.write(interventions_content)
 
 print("Rewrote interventions.py successfully.")

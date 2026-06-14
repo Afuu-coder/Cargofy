@@ -1,5 +1,5 @@
 """
-Axon — Telemetry Pipeline Service
+Cargofy — Telemetry Pipeline Service
 Replicates Dataflow pipeline logic as an in-process FastAPI service.
 
 Flow A: Enrich incoming telemetry

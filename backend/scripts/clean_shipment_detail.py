@@ -1,6 +1,6 @@
 import re
 
-filepath = r'c:\Users\afjal\Desktop\Cargofy\Axon\backend\app\routers\shipment_detail.py'
+filepath = r'c:\Users\afjal\Desktop\Cargofy\Cargofy\backend\app\routers\shipment_detail.py'
 
 with open(filepath, 'r', encoding='utf-8') as f:
     content = f.read()

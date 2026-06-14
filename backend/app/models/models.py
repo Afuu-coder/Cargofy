@@ -1,5 +1,5 @@
 """
-Axon — SQLAlchemy ORM Models
+Cargofy — SQLAlchemy ORM Models
 Mirrors the PostgreSQL schema defined in database/schema.sql.
 """
 

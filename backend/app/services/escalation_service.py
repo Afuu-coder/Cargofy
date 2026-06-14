@@ -1,5 +1,5 @@
 """
-Axon — Escalation Service (Cloud Tasks)
+Cargofy — Escalation Service (Cloud Tasks)
 Schedules delayed escalation chains for unacknowledged alerts.
 
 Blueprint Flow D:
@@ -72,8 +72,8 @@ async def _try_cloud_tasks(
 ) -> bool:
     project  = settings.VERTEX_AI_PROJECT
     location = settings.VERTEX_AI_LOCATION or "us-central1"
-    queue    = "axon-escalation-queue"
-    service_url = settings.BACKEND_URL or "https://axon-backend-xxxx-ew.a.run.app"
+    queue    = "cargofy-escalation-queue"
+    service_url = settings.BACKEND_URL or "https://cargofy-backend-xxxx-ew.a.run.app"
 
     if not project:
         return False

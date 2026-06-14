@@ -1,5 +1,5 @@
 """
-Axon — Alerts Router (upgraded)
+Cargofy — Alerts Router (upgraded)
 All blueprint endpoints for alert creation, delivery tracking, escalation.
 
 Prefix: /api/v1/alerts
@@ -196,7 +196,7 @@ async def whatsapp_webhook(request: Request):
     # Webhook verification (GET)
     if request.method == "GET":
         params = dict(request.query_params)
-        if params.get("hub.verify_token") == "axon_webhook_verify":
+        if params.get("hub.verify_token") == "cargofy_webhook_verify":
             return int(params.get("hub.challenge", 0))
         raise HTTPException(403, "Invalid verify token")
 
@@ -212,7 +212,7 @@ async def whatsapp_webhook(request: Request):
 @router.get("/webhooks/whatsapp", summary="WhatsApp webhook verification")
 async def whatsapp_webhook_verify(request: Request):
     params = dict(request.query_params)
-    if params.get("hub.verify_token") == "axon_webhook_verify":
+    if params.get("hub.verify_token") == "cargofy_webhook_verify":
         return int(params.get("hub.challenge", 0))
     raise HTTPException(403, "Invalid verify token")
 

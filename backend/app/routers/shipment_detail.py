@@ -1,5 +1,5 @@
 """
-Axon — Shipment Detail & Active Shipments Router (Blueprint Parts B + C)
+Cargofy — Shipment Detail & Active Shipments Router (Blueprint Parts B + C)
 
 New endpoints added on top of existing CRUD in shipments.py.
 Prefix: /api/v1/shipments

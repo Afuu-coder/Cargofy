@@ -1,5 +1,5 @@
 """
-Axon — WhatsApp Alert Service (Twilio)
+Cargofy — WhatsApp Alert Service (Twilio)
 
 Builds formatted Hinglish WhatsApp messages and sends them via
 the Twilio WhatsApp Sandbox / Business API.
@@ -95,7 +95,7 @@ def build_alert_message(
 
     # ── Assemble message ───────────────────────────────────────────────────────
     message = (
-        f"{emoji} *Axon ALERT*\n"
+        f"{emoji} *Cargofy ALERT*\n"
         f"{_DIVIDER}\n"
         f"Shipment: {code}\n"
         f"Product: {product} ({qty_str})\n"

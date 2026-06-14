@@ -1,12 +1,12 @@
 """
-Axon -- Google ADK Cold-Chain Agent (v1.31 compatible)
+Cargofy -- Google ADK Cold-Chain Agent (v1.31 compatible)
 
 Uses Google ADK with Gemini 2.0 Flash to analyze cold-chain sensor data
 and return structured Hinglish recommendations.
 
 Public API:
-    from app.agents.axon_agent import run_axon_agent
-    result = await run_axon_agent(payload)
+    from app.agents.cargofy_agent import run_cargofy_agent
+    result = await run_cargofy_agent(payload)
 """
 
 from __future__ import annotations
@@ -76,7 +76,7 @@ def _build_prompt(payload: Dict[str, Any]) -> str:
             facility_line += f" ({fdist} km away)"
 
     return (
-        f"You are Axon, a cold-chain advisor for Indian MSME food businesses. "
+        f"You are Cargofy, a cold-chain advisor for Indian MSME food businesses. "
         f"Respond ONLY in simple Hinglish (Hindi + English mixed, Roman script). "
         f"Be specific, practical, urgent but calm. Never use technical jargon.\n\n"
         f"Shipment data:\n"
@@ -135,21 +135,21 @@ def _call_adk_sync(prompt: str, api_key: str) -> dict | None:
     from google.genai import types as genai_types
 
     agent = LlmAgent(
-        name="axon_cold_chain_agent",
+        name="cargofy_cold_chain_agent",
         model="gemini-2.0-flash",
         description="Cold chain risk advisor for Indian MSMEs",
         instruction=(
-            "You are Axon, a cold-chain advisor. "
+            "You are Cargofy, a cold-chain advisor. "
             "Respond ONLY with valid JSON. No markdown, no prose, no explanation outside the JSON."
         ),
     )
 
     session_service = InMemorySessionService()
-    runner = Runner(agent=agent, app_name="axon", session_service=session_service)
+    runner = Runner(agent=agent, app_name="cargofy", session_service=session_service)
 
     session_id = str(uuid.uuid4())
     session_service.create_session(
-        app_name="axon",
+        app_name="cargofy",
         user_id="system",
         session_id=session_id,
     )
@@ -203,7 +203,7 @@ def _call_sdk_sync(prompt: str, api_key: str) -> dict | None:
 # ---------------------------------------------------------------------------
 # Public async entry point
 # ---------------------------------------------------------------------------
-async def run_axon_agent(payload: Dict[str, Any]) -> dict:
+async def run_cargofy_agent(payload: Dict[str, Any]) -> dict:
     """
     Analyze cold-chain risk using Google ADK + Gemini 2.0 Flash.
     Falls back to raw SDK, then to static response. Never raises.

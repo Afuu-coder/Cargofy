@@ -1,7 +1,7 @@
 """
-Axon — BigQuery Analytics Service (Blueprint: Analytics Center)
+Cargofy — BigQuery Analytics Service (Blueprint: Analytics Center)
 
-All queries use dataset `axon_ops` (configurable via BIGQUERY_DATASET env).
+All queries use dataset `cargofy_ops` (configurable via BIGQUERY_DATASET env).
 Falls back gracefully when BigQuery is not configured.
 
 Tables: telemetry_events · shipments · interventions · alert_events
@@ -53,7 +53,7 @@ def _run(query: str, params: Optional[Dict[str, Any]] = None) -> List[Dict[str, 
 
 
 def _ds() -> str:
-    return settings.BIGQUERY_DATASET or "axon_ops"
+    return settings.BIGQUERY_DATASET or "cargofy_ops"
 
 
 # ── Period helpers ─────────────────────────────────────────────────────────────
@@ -519,7 +519,7 @@ async def generate_export_report(
     report_type: str = "COMPLIANCE",
     period: str = "THIS_MONTH",
     fmt: str = "PDF",
-    org_id: str = "axon",
+    org_id: str = "cargofy",
 ) -> Dict[str, Any]:
     """
     Blueprint: POST /analytics/export
@@ -529,7 +529,7 @@ async def generate_export_report(
     import io, csv, json, uuid
 
     job_id = f"rpt_{uuid.uuid4().hex[:12]}"
-    bucket_name = getattr(settings, "GCS_EXPORTS_BUCKET", None) or "axon-exports"
+    bucket_name = getattr(settings, "GCS_EXPORTS_BUCKET", None) or "cargofy-exports"
 
     # Pull data
     if report_type == "COMPLIANCE":

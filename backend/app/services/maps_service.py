@@ -1,5 +1,5 @@
 ﻿"""
-Axon — Google Maps Places Service
+Cargofy — Google Maps Places Service
 
 Finds nearby cold-storage facilities and mandis using the
 Google Places API (New) — Nearby Search v1 (POST, JSON body).

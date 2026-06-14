@@ -1,5 +1,5 @@
 """
-Axon — ADK DispatchAgent
+Cargofy — ADK DispatchAgent
 
 Google ADK agent that recommends the best vehicle + driver combination
 for a new shipment. Called during wizard Step 3 (Logistics Assignment).
@@ -11,7 +11,7 @@ Architecture:
            │
     Tools:
       get_available_vehicles()   → PostgreSQL vehicles table
-      get_driver_performance()   → BigQuery axon_ops.driver_performance
+      get_driver_performance()   → BigQuery cargofy_ops.driver_performance
       check_route_timing()       → heuristic congestion check
            │
     Gemma 2 polishes dispatch timing suggestion
@@ -90,7 +90,7 @@ def get_available_vehicles(
 
 def get_driver_performance(driver_id: str = "") -> Dict[str, Any]:
     """
-    Get driver stats from BigQuery axon_ops.driver_performance.
+    Get driver stats from BigQuery cargofy_ops.driver_performance.
     Falls back to mock data if BigQuery is unavailable.
     """
     try:
@@ -229,8 +229,8 @@ def _run_dispatch_agent_adk(
         agent = LlmAgent(
             name="DispatchAgent",
             model="gemini-2.0-flash",
-            description="Axon dispatch optimization agent",
-            instruction="""You are Axon's DispatchAgent — a dispatch optimization assistant.
+            description="Cargofy dispatch optimization agent",
+            instruction="""You are Cargofy's DispatchAgent — a dispatch optimization assistant.
 
 Given a shipment request, you must:
 1. Call get_available_vehicles() to find suitable reefer vehicles
@@ -250,13 +250,13 @@ Return EXACTLY this JSON (no extra text):
         )
 
         session_svc = InMemorySessionService()
-        runner = Runner(agent=agent, app_name="axon_dispatch", session_service=session_svc)
+        runner = Runner(agent=agent, app_name="cargofy_dispatch", session_service=session_svc)
         sid = str(_uuid.uuid4())
 
         import asyncio
         loop = asyncio.new_event_loop()
         loop.run_until_complete(
-            session_svc.create_session(app_name="axon_dispatch", user_id="wizard", session_id=sid)
+            session_svc.create_session(app_name="cargofy_dispatch", user_id="wizard", session_id=sid)
         )
 
         prompt_text = (

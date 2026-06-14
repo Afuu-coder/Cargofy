@@ -1,7 +1,7 @@
 import sys
 import os
 
-with open('c:/Users/afjal/Desktop/Cargofy/Axon/backend/app/models/models.py', 'r', encoding='utf-8') as f:
+with open('c:/Users/afjal/Desktop/Cargofy/Cargofy/backend/app/models/models.py', 'r', encoding='utf-8') as f:
     models_content = f.read()
 
 if "class Driver(Base):" not in models_content:
@@ -61,12 +61,12 @@ class Vehicle(Base):
     created_at = Column(String(50))
 """
 
-with open('c:/Users/afjal/Desktop/Cargofy/Axon/backend/app/models/models.py', 'w', encoding='utf-8') as f:
+with open('c:/Users/afjal/Desktop/Cargofy/Cargofy/backend/app/models/models.py', 'w', encoding='utf-8') as f:
     f.write(models_content)
 
 
 fleet_py_content = """\"\"\"
-Axon — Fleet & Drivers Router (Blueprint: Part A)
+Cargofy — Fleet & Drivers Router (Blueprint: Part A)
 
 Prefix: /api/v1/fleet
 Backends: PostgreSQL (Supabase)
@@ -466,5 +466,5 @@ async def fleet_health_summary(db: Session = Depends(get_db)):
     }
 """
 
-with open('c:/Users/afjal/Desktop/Cargofy/Axon/backend/app/routers/fleet.py', 'w', encoding='utf-8') as f:
+with open('c:/Users/afjal/Desktop/Cargofy/Cargofy/backend/app/routers/fleet.py', 'w', encoding='utf-8') as f:
     f.write(fleet_py_content)

@@ -56,11 +56,6 @@ class Settings(BaseSettings):
     # ── Firebase ─────────────────────────────────────────────────────────────
     FIREBASE_DB_URL: str = ""
 
-    # ── ULIP / Govt APIs (mock for demo) ────────────────────────────────────
-    ULIP_API_KEY: str = ""        # Unified Logistics Interface Platform key
-    VAHAN_API_KEY: str = ""       # Vehicle registration lookup (mock)
-    SARATHI_API_KEY: str = ""     # Driver license lookup (mock)
-
     # ── Redis / Memorystore ──────────────────────────────────────────────────
     REDIS_URL: str = ""  # redis://10.x.x.x:6379  (Cloud Memorystore)
 

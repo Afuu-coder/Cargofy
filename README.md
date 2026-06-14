@@ -42,10 +42,6 @@ Cargofy is a fully functional end-to-end platform blending hardware simulation, 
 - Immutable, on-chain recording of shipment conditions.
 - Smart contracts (`CargofyShipmentAudit.sol`) finalize verdicts (SAFE / SPOILED / PARTIAL) to guarantee transparent accountability for logistics providers.
 
-### 5. 🇮🇳 PM Gati Shakti & ULIP Integration
-- **Vahan API (Simulated):** Real-time vehicle compliance, pollution checks, and registration verification.
-- **Sarathi API (Simulated):** Instant driver background and license verification.
-
 ---
 
 ## 🧠 Architecture

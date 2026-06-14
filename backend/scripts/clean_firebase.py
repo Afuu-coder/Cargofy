@@ -23,15 +23,15 @@ def process_file(filepath):
         f.write(content)
         
 files_to_process = [
-    'c:/Users/afjal/Desktop/Cargofy/Axon/backend/app/routers/tracking.py',
-    'c:/Users/afjal/Desktop/Cargofy/Axon/backend/app/routers/webhook.py',
-    'c:/Users/afjal/Desktop/Cargofy/Axon/backend/app/routers/wizard.py',
-    'c:/Users/afjal/Desktop/Cargofy/Axon/backend/app/services/escalation_service.py',
-    'c:/Users/afjal/Desktop/Cargofy/Axon/backend/app/services/intervention_agent.py',
-    'c:/Users/afjal/Desktop/Cargofy/Axon/backend/app/services/pubsub_service.py',
-    'c:/Users/afjal/Desktop/Cargofy/Axon/backend/app/services/risk_compute_service.py',
-    'c:/Users/afjal/Desktop/Cargofy/Axon/backend/app/services/simulator_service.py',
-    'c:/Users/afjal/Desktop/Cargofy/Axon/backend/app/services/telemetry_pipeline.py'
+    'c:/Users/afjal/Desktop/Cargofy/Cargofy/backend/app/routers/tracking.py',
+    'c:/Users/afjal/Desktop/Cargofy/Cargofy/backend/app/routers/webhook.py',
+    'c:/Users/afjal/Desktop/Cargofy/Cargofy/backend/app/routers/wizard.py',
+    'c:/Users/afjal/Desktop/Cargofy/Cargofy/backend/app/services/escalation_service.py',
+    'c:/Users/afjal/Desktop/Cargofy/Cargofy/backend/app/services/intervention_agent.py',
+    'c:/Users/afjal/Desktop/Cargofy/Cargofy/backend/app/services/pubsub_service.py',
+    'c:/Users/afjal/Desktop/Cargofy/Cargofy/backend/app/services/risk_compute_service.py',
+    'c:/Users/afjal/Desktop/Cargofy/Cargofy/backend/app/services/simulator_service.py',
+    'c:/Users/afjal/Desktop/Cargofy/Cargofy/backend/app/services/telemetry_pipeline.py'
 ]
 
 for fp in files_to_process:

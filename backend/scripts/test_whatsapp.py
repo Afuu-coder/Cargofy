@@ -18,7 +18,7 @@ async def main():
     # If the SID/Token are valid, it will fail with "unverified number" for sandbox
     # If invalid, it will fail with "Authentication Error"
     test_number = "+919999999999" 
-    test_message = "🔴 *Axon Test ALERT*\n━━━━━━━━━━━━━━━━━━\nThis is a test message to verify if Twilio credentials are working correctly.\n━━━━━━━━━━━━━━━━━━"
+    test_message = "🔴 *Cargofy Test ALERT*\n━━━━━━━━━━━━━━━━━━\nThis is a test message to verify if Twilio credentials are working correctly.\n━━━━━━━━━━━━━━━━━━"
     
     print(f"[*] Attempting to send to {test_number}...")
     print(f"[*] Account SID: {settings.TWILIO_ACCOUNT_SID}")

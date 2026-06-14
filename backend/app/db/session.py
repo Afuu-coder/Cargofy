@@ -1,5 +1,5 @@
 """
-Axon — SQLAlchemy Database Session
+Cargofy — SQLAlchemy Database Session
 Provides a synchronous session factory (psycopg2 driver, easy to run with FastAPI).
 """
 

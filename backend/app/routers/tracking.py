@@ -1,6 +1,6 @@
 """
-Axon — Live Tracking Router
-axon-tracking-svc (implemented as FastAPI router on the main service)
+Cargofy — Live Tracking Router
+cargofy-tracking-svc (implemented as FastAPI router on the main service)
 
 Endpoints (blueprint-spec):
   GET  /api/v1/tracking/{shipmentId}            → Full tracking screen data

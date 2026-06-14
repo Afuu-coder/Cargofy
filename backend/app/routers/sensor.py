@@ -49,7 +49,7 @@ _ENRICH_CATEGORIES = {"HIGH", "CRITICAL"}
 Accepts one sensor reading (temperature, humidity, GPS, delay).
 
 After storing, the endpoint **automatically computes risk** using the
-Axon formula and saves a `risk_event` row — so the dashboard
+Cargofy formula and saves a `risk_event` row — so the dashboard
 always shows the freshest risk.
 
 For **HIGH or CRITICAL** risk, the endpoint also:

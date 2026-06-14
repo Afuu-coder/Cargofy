@@ -1,10 +1,10 @@
 import re
 
-with open('c:/Users/afjal/Desktop/Cargofy/Axon/backend/app/services/alert_service.py', 'r', encoding='utf-8') as f:
+with open('c:/Users/afjal/Desktop/Cargofy/Cargofy/backend/app/services/alert_service.py', 'r', encoding='utf-8') as f:
     content = f.read()
 
 new_content = """\"\"\"
-Axon — Alert Service (Blueprint: Alerts Center)
+Cargofy — Alert Service (Blueprint: Alerts Center)
 Flows: A (risk-triggered), B (webhook/ack), C (escalation), D (manual)
 \"\"\"
 from __future__ import annotations
@@ -364,5 +364,5 @@ def mark_false_positive(alert_id: str, user_id: str, note: str = "") -> bool:
         db.close()
 """
 
-with open('c:/Users/afjal/Desktop/Cargofy/Axon/backend/app/services/alert_service.py', 'w', encoding='utf-8') as f:
+with open('c:/Users/afjal/Desktop/Cargofy/Cargofy/backend/app/services/alert_service.py', 'w', encoding='utf-8') as f:
     f.write(new_content)

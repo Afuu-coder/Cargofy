@@ -1,5 +1,5 @@
 ﻿"""
-Axon — Explain Router
+Cargofy — Explain Router
 POST /api/v1/explain — standalone Gemini AI explanation endpoint.
 
 Accepts a risk payload and returns a Hinglish explanation + action plan

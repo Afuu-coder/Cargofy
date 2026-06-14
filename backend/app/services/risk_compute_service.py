@@ -1,5 +1,5 @@
 """
-Axon — Spoilage Risk Compute Service
+Cargofy — Spoilage Risk Compute Service
 Replicates the Dataflow risk-compute-pipeline as an in-process service.
 
 Primary: Vertex AI online prediction (spoilage-risk-model endpoint).

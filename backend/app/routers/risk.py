@@ -1,5 +1,5 @@
 ﻿"""
-Axon — Risk Router
+Cargofy — Risk Router
 POST /api/v1/risk/compute — compute risk score for any payload.
 Optionally persists result to risk_events table if shipment_id provided.
 For MEDIUM / HIGH / CRITICAL risk, also calls Gemini for a Hinglish
@@ -30,7 +30,7 @@ _AI_TRIGGER_CATEGORIES = {"MEDIUM", "HIGH", "CRITICAL"}
     response_model=RiskComputeResponse,
     summary="Compute spoilage risk score",
     description="""
-Compute a risk score using the Axon formula:
+Compute a risk score using the Cargofy formula:
 
 - **temp_factor**    = clamp((temp − safe_max) / (critical − safe_max + 2), 0, 1) × 0.50
 - **delay_factor**   = clamp(delay_minutes / 120, 0, 1) × 0.35

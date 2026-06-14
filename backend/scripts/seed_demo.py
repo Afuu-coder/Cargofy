@@ -1,5 +1,5 @@
 ﻿"""
-Axon — Demo Data Seeder
+Cargofy — Demo Data Seeder
 ============================
 Inserts 1 demo user + 3 shipments + sensor readings into PostgreSQL.
 Safe to re-run — uses ON CONFLICT DO NOTHING everywhere.

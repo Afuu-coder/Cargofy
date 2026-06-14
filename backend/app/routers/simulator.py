@@ -1,5 +1,5 @@
 """
-Axon — IoT Simulator Router
+Cargofy — IoT Simulator Router
 All blueprint REST endpoints for the simulator.
 
 Prefix: /api/v1/simulator

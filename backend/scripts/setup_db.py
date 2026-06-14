@@ -1,6 +1,6 @@
 """
-Axon -- Database Setup
-Run once to create the axon PostgreSQL role + database + all tables.
+Cargofy -- Database Setup
+Run once to create the cargofy PostgreSQL role + database + all tables.
 
 Usage:
     python setup_db.py
@@ -34,21 +34,21 @@ def create_role_and_db(pg_user, pg_password, pg_host, pg_port):
     conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
     cur = conn.cursor()
 
-    cur.execute("SELECT 1 FROM pg_roles WHERE rolname='axon'")
+    cur.execute("SELECT 1 FROM pg_roles WHERE rolname='cargofy'")
     if cur.fetchone():
-        print("[OK] Role 'axon' already exists -- skipping")
+        print("[OK] Role 'cargofy' already exists -- skipping")
     else:
-        cur.execute("CREATE ROLE axon WITH LOGIN PASSWORD 'axon_dev_password'")
-        print("[OK] Created role 'axon'")
+        cur.execute("CREATE ROLE cargofy WITH LOGIN PASSWORD 'cargofy_dev_password'")
+        print("[OK] Created role 'cargofy'")
 
-    cur.execute("SELECT 1 FROM pg_database WHERE datname='axon_db'")
+    cur.execute("SELECT 1 FROM pg_database WHERE datname='cargofy_db'")
     if cur.fetchone():
-        print("[OK] Database 'axon_db' already exists -- skipping")
+        print("[OK] Database 'cargofy_db' already exists -- skipping")
     else:
-        cur.execute("CREATE DATABASE axon_db OWNER axon ENCODING 'UTF8'")
-        print("[OK] Created database 'axon_db'")
+        cur.execute("CREATE DATABASE cargofy_db OWNER cargofy ENCODING 'UTF8'")
+        print("[OK] Created database 'cargofy_db'")
 
-    cur.execute("GRANT ALL PRIVILEGES ON DATABASE axon_db TO axon")
+    cur.execute("GRANT ALL PRIVILEGES ON DATABASE cargofy_db TO cargofy")
     cur.close()
     conn.close()
     print("[OK] Granted privileges")
@@ -73,7 +73,7 @@ def seed_demo_data():
             user = User(
                 name="Demo Owner",
                 phone="+919999999999",
-                business_name="Axon Demo MSME",
+                business_name="Cargofy Demo MSME",
                 business_type="dairy",
             )
             db.add(user)
@@ -86,7 +86,7 @@ def seed_demo_data():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Axon Database Setup")
+    parser = argparse.ArgumentParser(description="Cargofy Database Setup")
     parser.add_argument("--postgres-user", default="postgres")
     parser.add_argument("--password",      default=None)
     parser.add_argument("--host",          default="localhost")
@@ -94,7 +94,7 @@ def main():
     parser.add_argument("--skip-role",     action="store_true")
     args = parser.parse_args()
 
-    print("\n[AXON] Database Setup")
+    print("\n[CARGOFY] Database Setup")
     print("-" * 40)
 
     if not args.skip_role:

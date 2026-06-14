@@ -1,5 +1,5 @@
 """
-Axon — Analytics Router (Blueprint: Analytics Center)
+Cargofy — Analytics Router (Blueprint: Analytics Center)
 All 9 blueprint endpoints implemented.
 
 Prefix: /api/v1/analytics
@@ -35,7 +35,7 @@ class ExportRequest(BaseModel):
     type:   str = "COMPLIANCE"    # COMPLIANCE | ROUTES | DRIVERS | OVERVIEW
     period: str = "THIS_MONTH"
     format: str = "CSV"           # CSV | PDF (PDF falls back to CSV for now)
-    org_id: str = "axon"
+    org_id: str = "cargofy"
 
 
 # ── 1. Summary (legacy — kept for backward compat + dashboard KPIs) ────────────
@@ -195,7 +195,7 @@ async def trigger_export(body: ExportRequest):
     """
     Triggers report generation:
     1. Queries BigQuery for requested data
-    2. Uploads CSV to GCS axon-exports bucket
+    2. Uploads CSV to GCS cargofy-exports bucket
     3. Returns signed URL (valid 7 days)
 
     POST body: { type, period, format, org_id }

@@ -1,5 +1,5 @@
 """
-Axon — IoT Simulator Service
+Cargofy — IoT Simulator Service
 Publishes synthetic telemetry to the SAME Pub/Sub topic as real IoT sensors.
 The entire pipeline (Dataflow → Vertex AI → RTDB → alerts) responds identically.
 
@@ -219,7 +219,7 @@ async def start_playback(
     session_id = session_id or f"sim_{uuid.uuid4().hex[:8]}"
     project  = settings.VERTEX_AI_PROJECT
     location = settings.VERTEX_AI_LOCATION or "us-central1"
-    service_url = settings.BACKEND_URL or "https://axon-backend-xxxx-ew.a.run.app"
+    service_url = settings.BACKEND_URL or "https://cargofy-backend-xxxx-ew.a.run.app"
 
     # ── Fetch Route Geometry ──────────────────────────────────────────────────
     route_points = []

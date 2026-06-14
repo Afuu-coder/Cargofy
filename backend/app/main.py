@@ -17,7 +17,7 @@ from app.routers import (
     risk, explain, contact, facilities,
     control_tower, agent_scheduler, pubsub_push, wizard, tracking, iot_simulator,
     interventions, simulator, fleet, shipment_detail,
-    webhook, notification, ulip, rerouting, blockchain,
+    webhook, notification, rerouting, blockchain,
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -95,7 +95,6 @@ app.include_router(webhook.router,         prefix=f"{API_PREFIX}/webhook",      
 app.include_router(notification.router,    prefix=f"{API_PREFIX}/notify",          tags=["Notifications"])
 
 # ── Cargofy New Feature Routers ───────────────────────────────────────────────
-app.include_router(ulip.router,        prefix=f"{API_PREFIX}/ulip",        tags=["ULIP / PM Gati Shakti"])
 app.include_router(rerouting.router,   prefix=f"{API_PREFIX}/agent",       tags=["Autonomous Rerouting Agent"])
 app.include_router(blockchain.router,  prefix=f"{API_PREFIX}/blockchain",   tags=["Blockchain Audit Trail"])
 
@@ -113,7 +112,6 @@ def health():
         "themes": ["Logistics & Transit", "Agentic & Autonomous Systems"],
         "new_features": [
             "Autonomous Rerouting Agent (Google ADK + Gemini 2.0 Flash)",
-            "ULIP / PM Gati Shakti Integration (Vahan + Sarathi)",
             "CallMeBot FREE WhatsApp Alerts (no Twilio, no credit card)",
             "Predictive Battery/AC Failure Detection",
             "WebSocket Real-time 3D Dashboard",
@@ -129,7 +127,6 @@ def health():
             "pubsub":           bool(s.PUBSUB_PROJECT or s.VERTEX_AI_PROJECT),
             "mapbox_3d":        bool(s.MAPBOX_API_KEY),
             "blockchain":       bool(s.BLOCKCHAIN_RPC_URL),
-            "ulip_ready":       True,   # mock always works
             "redis_cache":      cache_health(),
         }
     }
@@ -139,7 +136,7 @@ def root():
     static_index = os.path.join(os.path.dirname(__file__), "..", "static", "index.html")
     if os.path.exists(static_index):
         return FileResponse(static_index)
-    return {"message": "Welcome to Axon API. Docs at /docs"}
+    return {"message": "Welcome to Cargofy API. Docs at /docs"}
 
 # ── Static Files & SPA Routing ───────────────────────────────────────────────
 

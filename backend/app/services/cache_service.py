@@ -1,5 +1,5 @@
 """
-Axon — Redis Cache Service (Cloud Memorystore)
+Cargofy — Redis Cache Service (Cloud Memorystore)
 
 Provides a thin cache layer in front of expensive operations:
   - Control Tower snapshot     (TTL: 30s)
@@ -66,8 +66,8 @@ def _get_redis():
 # ── Key builder ───────────────────────────────────────────────────────────────
 
 def cache_key(*parts: str) -> str:
-    """Build a namespaced cache key. e.g. cache_key('risk', 'AXN-2091') → 'axon:risk:AXN-2091'"""
-    return "axon:" + ":".join(str(p) for p in parts)
+    """Build a namespaced cache key. e.g. cache_key('risk', 'AXN-2091') → 'cargofy:risk:AXN-2091'"""
+    return "cargofy:" + ":".join(str(p) for p in parts)
 
 
 # ── Core operations ───────────────────────────────────────────────────────────
@@ -120,7 +120,7 @@ def cache_delete(key: str) -> bool:
 
 
 def cache_delete_pattern(pattern: str) -> int:
-    """Delete all keys matching a pattern. e.g. 'axon:risk:*'"""
+    """Delete all keys matching a pattern. e.g. 'cargofy:risk:*'"""
     r = _get_redis()
     if not r:
         return 0

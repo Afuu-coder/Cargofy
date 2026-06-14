@@ -1,5 +1,5 @@
 """
-Axon — ADK ControlTowerAgent
+Cargofy — ADK ControlTowerAgent
 
 Proactive AI agent that runs every 60s (via Cloud Scheduler / HTTP trigger).
 Assesses the network state and generates 3-5 actionable suggestions.
@@ -146,8 +146,8 @@ def _run_adk_agent() -> List[Dict[str, Any]]:
         agent = LlmAgent(
             name="ControlTowerAgent",
             model="gemini-2.0-flash",
-            description="Axon Control Tower intelligence agent",
-            instruction="""You are Axon's Control Tower intelligence agent.
+            description="Cargofy Control Tower intelligence agent",
+            instruction="""You are Cargofy's Control Tower intelligence agent.
 Assess the current network state using the tools provided and generate
 3-5 specific, actionable suggestions for operators.
 
@@ -165,17 +165,17 @@ Return ONLY a valid JSON array:
         )
 
         session_svc = InMemorySessionService()
-        runner = Runner(agent=agent, app_name="axon_ct", session_service=session_svc)
+        runner = Runner(agent=agent, app_name="cargofy_ct", session_service=session_svc)
         sid = str(uuid.uuid4())
         # create_session is async — run safely from sync context
         try:
             loop = asyncio.get_running_loop()
             import concurrent.futures
             with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
-                future = pool.submit(asyncio.run, session_svc.create_session(app_name="axon_ct", user_id="scheduler", session_id=sid))
+                future = pool.submit(asyncio.run, session_svc.create_session(app_name="cargofy_ct", user_id="scheduler", session_id=sid))
                 future.result(timeout=10)
         except RuntimeError:
-            asyncio.get_event_loop().run_until_complete(session_svc.create_session(app_name="axon_ct", user_id="scheduler", session_id=sid))
+            asyncio.get_event_loop().run_until_complete(session_svc.create_session(app_name="cargofy_ct", user_id="scheduler", session_id=sid))
 
         events = list(runner.run(
             user_id="scheduler", session_id=sid,
@@ -252,7 +252,7 @@ def _run_fallback_agent() -> List[Dict[str, Any]]:
             generation_config=genai.types.GenerationConfig(
                 temperature=0.3, response_mime_type="application/json"))
         prompt = (
-            f"You are Axon's Control Tower agent. Generate 3-5 actionable suggestions.\n"
+            f"You are Cargofy's Control Tower agent. Generate 3-5 actionable suggestions.\n"
             f"Critical shipments: {json.dumps(critical[:5])}\n"
             f"Unacked alerts: {json.dumps(unacked[:5])}\n\n"
             f"Return JSON array: [{{\"id\":\"act_001\",\"shipment_id\":\"XXX\","

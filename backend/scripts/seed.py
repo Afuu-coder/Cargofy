@@ -1,5 +1,5 @@
 """
-Axon — Demo Seed Script
+Cargofy — Demo Seed Script
 Populates the DB with realistic demo shipments, sensor readings, and risk events
 for showcasing the Control Tower dashboard.
 

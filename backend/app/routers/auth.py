@@ -1,5 +1,5 @@
 """
-Axon -- Auth Router
+Cargofy -- Auth Router
 POST /api/v1/auth/login   -- passwordless demo login / email+password
 POST /api/v1/auth/signup  -- create new user account
 GET  /api/v1/auth/me      -- return current user info from token
@@ -25,8 +25,8 @@ router = APIRouter()
 # ── Request / Response schemas ──────────────────────────────────────────────
 
 class LoginRequest(BaseModel):
-    email: str = Field(..., examples=["demo@axon.ai"])
-    password: str = Field(..., min_length=4, examples=["axon2026"])
+    email: str = Field(..., examples=["demo@cargofy.ai"])
+    password: str = Field(..., min_length=4, examples=["cargofy2026"])
     name: Optional[str] = Field(None, examples=["Demo Owner"])
     phone: Optional[str] = Field(None, examples=["+919999999999"])
 
@@ -54,7 +54,7 @@ def _make_token(user_id: str) -> str:
     """Simple deterministic demo token (not production JWT)."""
     import hashlib
     raw = f"{user_id}:{settings.SECRET_KEY}"
-    return "axon-" + hashlib.sha256(raw.encode()).hexdigest()[:32]
+    return "cargofy-" + hashlib.sha256(raw.encode()).hexdigest()[:32]
 
 
 def _get_or_create_by_email(db: Session, email: str, name: str, phone: Optional[str]) -> tuple[User, bool]:
@@ -120,7 +120,7 @@ def login(body: LoginRequest, db: Session = Depends(get_db)):
     "/signup",
     response_model=AuthResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Create a new Axon account",
+    summary="Create a new Cargofy account",
 )
 def signup(body: SignupRequest, db: Session = Depends(get_db)):
     """Create a new user account. Phone (if provided) must be unique."""
@@ -164,6 +164,6 @@ def signup(body: SignupRequest, db: Session = Depends(get_db)):
 @router.get("/me", summary="Get current user info from token")
 def get_me(token: str = "", db: Session = Depends(get_db)):
     """Lightweight user-info endpoint for dashboard hydration."""
-    if not token or not token.startswith("axon-"):
+    if not token or not token.startswith("cargofy-"):
         raise HTTPException(status_code=401, detail="Invalid token")
     return {"status": "authenticated", "token": token}

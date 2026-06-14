@@ -1,5 +1,5 @@
 """
-Axon — Mapbox Route & Geocoding Service
+Cargofy — Mapbox Route & Geocoding Service
 
 Used by the Create Shipment wizard (Step 2) to:
   · Calculate driving routes between origin and destination

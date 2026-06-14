@@ -1,5 +1,5 @@
 """
-Axon — Cloud Pub/Sub Service
+Cargofy — Cloud Pub/Sub Service
 
 Full topic coverage matching the master architecture spec:
 
@@ -75,7 +75,7 @@ def _publish(topic_name: str, data: Dict[str, Any], **attrs: str) -> bool:
 def publish_telemetry(data: Dict[str, Any]) -> bool:
     """
     Publish a sensor reading from IoT device or simulator.
-    Consumed by: Dataflow axon-telemetry-pipeline
+    Consumed by: Dataflow cargofy-telemetry-pipeline
     Schema: { device_id, shipment_id, timestamp, temperature, humidity,
               ambient_temp, speed_kmh, lat, lng, delay_minutes }
     """
@@ -117,7 +117,7 @@ def publish_shipment_created(
 ) -> bool:
     """
     Published when a new shipment is created via wizard or API.
-    Consumed by: axon-alerts-svc, axon-tracking-svc, axon-iot-svc, Firebase-sync
+    Consumed by: cargofy-alerts-svc, cargofy-tracking-svc, cargofy-iot-svc, Firebase-sync
     """
     return _publish(
         settings.PUBSUB_SHIPMENT_CREATED_TOPIC,
@@ -148,7 +148,7 @@ def publish_risk_state_changed(
 ) -> bool:
     """
     Published when a shipment's risk category transitions.
-    Consumed by: axon-alerts-svc (alert generation), axon-intervention-svc,
+    Consumed by: cargofy-alerts-svc (alert generation), cargofy-intervention-svc,
                  Firebase-sync (RTDB /risk_scores update)
     """
     return _publish(
@@ -179,7 +179,7 @@ def publish_alert_event(
 ) -> bool:
     """
     Published after an alert is sent (delivery receipt).
-    Consumed by: Firebase-sync (RTDB /alerts_live), axon-analytics-svc
+    Consumed by: Firebase-sync (RTDB /alerts_live), cargofy-analytics-svc
     """
     return _publish(
         settings.PUBSUB_ALERT_EVENTS_TOPIC,
@@ -207,7 +207,7 @@ def publish_stage_changed(
 ) -> bool:
     """
     Published when a shipment moves to a new journey stage.
-    Consumed by: axon-alerts-svc, Firebase-sync, axon-analytics-svc
+    Consumed by: cargofy-alerts-svc, Firebase-sync, cargofy-analytics-svc
     Stage values: CREATED → LOADED → IN_TRANSIT → DELIVERED | SPOILED
     """
     return _publish(
@@ -237,7 +237,7 @@ def publish_vehicle_health_alert(
 ) -> bool:
     """
     Published by reefer-health-model prediction job (every 4h).
-    Consumed by: axon-alerts-svc (fleet maintenance alerts)
+    Consumed by: cargofy-alerts-svc (fleet maintenance alerts)
     """
     return _publish(
         settings.PUBSUB_VEHICLE_HEALTH_TOPIC,
@@ -267,7 +267,7 @@ def publish_intervention_taken(
 ) -> bool:
     """
     Published after an intervention is executed.
-    Consumed by: axon-analytics-svc (ROI tracking), Firebase-sync
+    Consumed by: cargofy-analytics-svc (ROI tracking), Firebase-sync
     intervention_type: REROUTE | COLD_HUB_DIVERSION | DRIVER_ALERT |
                        VEHICLE_SWAP | EMERGENCY_PICKUP
     """

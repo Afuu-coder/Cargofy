@@ -1,5 +1,5 @@
 """
-Axon -- Gemini / ADK Explanation Service
+Cargofy -- Gemini / ADK Explanation Service
 
 Public API: generate_explanation(payload) -> dict
   payload keys: risk_score, risk_category, product_type, current_temp,
@@ -7,7 +7,7 @@ Public API: generate_explanation(payload) -> dict
                 nearest_facility_name?, nearest_facility_distance?
 Returns: { explanation, actions, estimated_loss_inr }
 
-Routes through Google ADK agent (axon_agent.py) with raw SDK fallback.
+Routes through Google ADK agent (cargofy_agent.py) with raw SDK fallback.
 Never raises -- always returns a safe response.
 """
 
@@ -21,11 +21,11 @@ logger = logging.getLogger(__name__)
 
 async def generate_explanation(payload: Dict[str, Any]) -> dict:
     """
-    Call the ADK-powered Axon agent to generate Hinglish risk explanation.
+    Call the ADK-powered Cargofy agent to generate Hinglish risk explanation.
     """
     try:
-        from app.agents.axon_agent import run_axon_agent
-        result = await run_axon_agent(payload)
+        from app.agents.cargofy_agent import run_cargofy_agent
+        result = await run_cargofy_agent(payload)
         logger.info(
             "Explanation generated -- category=%s, loss_est=Rs %d",
             payload.get("risk_category"),

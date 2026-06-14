@@ -1,5 +1,5 @@
 """
-Axon — ETA Prediction Service
+Cargofy — ETA Prediction Service
 Tries Vertex AI eta-predictor, falls back to heuristic.
 """
 from __future__ import annotations

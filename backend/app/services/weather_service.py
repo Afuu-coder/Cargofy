@@ -1,5 +1,5 @@
 """
-Axon — OpenWeatherMap Ambient Temperature Service
+Cargofy — OpenWeatherMap Ambient Temperature Service
 Fetches real ambient temperature for a given lat/lng.
 Used during sensor ingestion to enrich risk computation.
 """

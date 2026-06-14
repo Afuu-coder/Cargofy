@@ -1,5 +1,5 @@
 """
-Axon — Pydantic Schemas
+Cargofy — Pydantic Schemas
 Request / Response models for all API endpoints.
 """
 

@@ -1,5 +1,5 @@
 """
-Axon — Create Shipment Wizard API Router
+Cargofy — Create Shipment Wizard API Router
 
 Implements the 5-step shipment creation wizard:
 
@@ -52,7 +52,7 @@ def _ensure_demo_user(db: Session) -> User:
     user = db.query(User).filter(User.phone == demo_phone).first()
     if not user:
         user = User(name="Demo Owner", phone=demo_phone,
-                    business_name="Axon Demo MSME", business_type="dairy")
+                    business_name="Cargofy Demo MSME", business_type="dairy")
         db.add(user); db.commit(); db.refresh(user)
     return user
 

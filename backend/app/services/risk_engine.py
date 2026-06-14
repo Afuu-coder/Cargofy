@@ -1,5 +1,5 @@
 ﻿"""
-Axon — Risk Computation Engine
+Cargofy — Risk Computation Engine
 Pure-Python formula-based risk scoring (no Vertex AI dependency for now).
 
 Formula:

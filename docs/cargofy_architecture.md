@@ -1,4 +1,4 @@
-# 🏗️ AXON — Master Backend Architecture & Infrastructure
+# 🏗️ CARGOFY — Master Backend Architecture & Infrastructure
 
 **Document Type:** Complete System Reference  
 **Stack:** Google Cloud Platform · Google ADK · Gemma 2 · Vertex AI · Cloud Run · Firebase · Mapbox · Pub/Sub · BigQuery · Dataflow
@@ -22,7 +22,7 @@ flowchart TD
     end
 
     subgraph Stream Processing Layer
-        DFTelemetry[Dataflow: axon-telemetry-pipeline]
+        DFTelemetry[Dataflow: cargofy-telemetry-pipeline]
         DFEvents[Dataflow: events-to-bigquery]
     end
 
@@ -33,18 +33,18 @@ flowchart TD
     end
 
     subgraph Microservices Layer
-        GatewaySVC(axon-gateway-svc)
-        ShipmentSVC(axon-shipment-svc)
-        TrackingSVC(axon-tracking-svc)
-        RiskSVC(axon-risk-svc)
-        AlertsSVC(axon-alerts-svc)
-        SimulatorSVC(axon-simulator-svc)
-        AnalyticsSVC(axon-analytics-svc)
-        FleetSVC(axon-fleet-svc)
-        WebhookSVC(axon-webhook-svc)
-        InterventionSVC(axon-intervention-svc)
-        NotificationSVC(axon-notification-svc)
-        ControlTowerSVC(axon-control-tower-svc)
+        GatewaySVC(cargofy-gateway-svc)
+        ShipmentSVC(cargofy-shipment-svc)
+        TrackingSVC(cargofy-tracking-svc)
+        RiskSVC(cargofy-risk-svc)
+        AlertsSVC(cargofy-alerts-svc)
+        SimulatorSVC(cargofy-simulator-svc)
+        AnalyticsSVC(cargofy-analytics-svc)
+        FleetSVC(cargofy-fleet-svc)
+        WebhookSVC(cargofy-webhook-svc)
+        InterventionSVC(cargofy-intervention-svc)
+        NotificationSVC(cargofy-notification-svc)
+        ControlTowerSVC(cargofy-control-tower-svc)
     end
 
     subgraph Data Layer
@@ -87,32 +87,32 @@ flowchart TD
 
 | Service | Language | Memory | Min Instances | Purpose |
 |---|---|---|---|---|
-| `axon-gateway-svc` | Node.js | 256MB | 2 | Auth + routing |
-| `axon-shipment-svc` | Node.js | 512MB | 2 | Shipment CRUD + detail |
-| `axon-tracking-svc` | Node.js | 512MB | 2 | Live tracking API |
-| `axon-risk-svc` | Python | 1GB | 2 | Risk score API + explanations |
-| `axon-alerts-svc` | Node.js | 512MB | 2 | Alert creation + delivery |
-| `axon-simulator-svc` | Node.js | 256MB | 1 | Synthetic telemetry emitter |
-| `axon-analytics-svc` | Python | 1GB | 1 | BigQuery analytics API |
-| `axon-fleet-svc` | Node.js | 256MB | 1 | Driver + vehicle management |
-| `axon-intervention-svc` | Python | 512MB | 1 | Execute intervention actions |
-| `axon-webhook-svc` | Node.js | 128MB | 1 | WhatsApp webhook handler |
-| `axon-notification-svc` | Node.js | 128MB | 1 | FCM + SMS dispatcher |
-| `axon-control-tower-svc` | Node.js | 512MB | 2 | Control Tower aggregation |
-| `axon-report-generator` | Python | 2GB | 0 | PDF/Excel report generation (Job) |
+| `cargofy-gateway-svc` | Node.js | 256MB | 2 | Auth + routing |
+| `cargofy-shipment-svc` | Node.js | 512MB | 2 | Shipment CRUD + detail |
+| `cargofy-tracking-svc` | Node.js | 512MB | 2 | Live tracking API |
+| `cargofy-risk-svc` | Python | 1GB | 2 | Risk score API + explanations |
+| `cargofy-alerts-svc` | Node.js | 512MB | 2 | Alert creation + delivery |
+| `cargofy-simulator-svc` | Node.js | 256MB | 1 | Synthetic telemetry emitter |
+| `cargofy-analytics-svc` | Python | 1GB | 1 | BigQuery analytics API |
+| `cargofy-fleet-svc` | Node.js | 256MB | 1 | Driver + vehicle management |
+| `cargofy-intervention-svc` | Python | 512MB | 1 | Execute intervention actions |
+| `cargofy-webhook-svc` | Node.js | 128MB | 1 | WhatsApp webhook handler |
+| `cargofy-notification-svc` | Node.js | 128MB | 1 | FCM + SMS dispatcher |
+| `cargofy-control-tower-svc` | Node.js | 512MB | 2 | Control Tower aggregation |
+| `cargofy-report-generator` | Python | 2GB | 0 | PDF/Excel report generation (Job) |
 
 ---
 
 ## 📨 Pub/Sub Topics & Subscriptions
 
-- **telemetry-stream**: IoT Core, axon-simulator-svc → Dataflow (axon-telemetry-pipeline)
+- **telemetry-stream**: IoT Core, cargofy-simulator-svc → Dataflow (cargofy-telemetry-pipeline)
 - **ops-events**: All services → Dataflow (events-to-bigquery)
-- **shipment-created**: axon-shipment-svc → axon-alerts-svc, axon-tracking-svc, axon-iot-svc, Firebase-sync
-- **risk-state-changed**: Dataflow → axon-alerts-svc, axon-intervention-svc, Firebase-sync
-- **alert-events**: axon-alerts-svc → Firebase-sync, axon-analytics-svc
-- **stage-changed**: axon-tracking-svc → axon-alerts-svc, Firebase-sync, axon-analytics-svc
-- **vehicle-health-alerts**: Vertex AI health prediction job → axon-alerts-svc
-- **intervention-taken**: axon-intervention-svc → axon-analytics-svc, Firebase-sync
+- **shipment-created**: cargofy-shipment-svc → cargofy-alerts-svc, cargofy-tracking-svc, cargofy-iot-svc, Firebase-sync
+- **risk-state-changed**: Dataflow → cargofy-alerts-svc, cargofy-intervention-svc, Firebase-sync
+- **alert-events**: cargofy-alerts-svc → Firebase-sync, cargofy-analytics-svc
+- **stage-changed**: cargofy-tracking-svc → cargofy-alerts-svc, Firebase-sync, cargofy-analytics-svc
+- **vehicle-health-alerts**: Vertex AI health prediction job → cargofy-alerts-svc
+- **intervention-taken**: cargofy-intervention-svc → cargofy-analytics-svc, Firebase-sync
 
 ---
 

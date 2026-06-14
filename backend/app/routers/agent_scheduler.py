@@ -1,5 +1,5 @@
 """
-Axon — Agent Scheduler Router
+Cargofy — Agent Scheduler Router
 
 HTTP endpoint called by Google Cloud Scheduler to trigger periodic tasks:
   POST /api/v1/agent/run          → Run ControlTowerAgent (every 60s)

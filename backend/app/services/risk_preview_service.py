@@ -1,5 +1,5 @@
 """
-Axon — Vertex AI Risk Preview Service
+Cargofy — Vertex AI Risk Preview Service
 
 Provides pre-dispatch spoilage risk prediction for shipment wizard Step 5.
 Uses Vertex AI Online Prediction endpoint if configured, otherwise

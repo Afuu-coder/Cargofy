@@ -1,5 +1,5 @@
 """
-Axon — IoT Telemetry Simulator
+Cargofy — IoT Telemetry Simulator
 Simulates MQTT telemetry from GPS/IoT devices for the Live Tracking pipeline.
 In production this is replaced by Cloud IoT Core → Pub/Sub.
 
