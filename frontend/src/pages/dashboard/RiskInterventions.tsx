@@ -45,7 +45,8 @@ function fmtSpoil(m?: number) {
   return h ? `${h}h ${mn}m` : `${mn}m`;
 }
 function getRiskCat(s: Shipment) { return s.current_risk?.risk_category?.toUpperCase() ?? 'LOW'; }
-function getRiskScore(s: Shipment) { return Math.round(s.current_risk?.risk_score ?? 0); }
+function getRiskScore(s: Shipment) { return Math.round((s.current_risk?.risk_score ?? 0) * 100); }
+
 
 // SOP steps by product type
 const SOP: Record<string, string[]> = {
@@ -1165,6 +1166,9 @@ export function RiskInterventions() {
     });
   }, [shipments, rtActiveShipments]);
 
+  const selectedRef = useRef(selected);
+  useEffect(() => { selectedRef.current = selected; }, [selected]);
+
   const fetchAll = useCallback(async () => {
     try {
       const [ships, alts] = await Promise.all([getShipments('all'), getAlerts()]);
@@ -1182,10 +1186,12 @@ export function RiskInterventions() {
           setRiskMap(m => ({...m, [s.id]: re}));
         } catch { /* silent */ }
       }
-      if (!selected && highRisk.length > 0) setSelected(highRisk[0]);
+      // Only auto-select if nothing is currently selected
+      if (!selectedRef.current && highRisk.length > 0) setSelected(highRisk[0]);
     } catch { /* silent */ }
     finally { setLoading(false); }
-  }, [selected]);
+  }, []); // no dependency on 'selected' — use ref to avoid re-fetch on every card click
+
 
   useEffect(() => {
     fetchAll();

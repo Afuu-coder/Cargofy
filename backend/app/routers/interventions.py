@@ -183,6 +183,52 @@ async def _background_intervention(
         db.close()
 
 # ─────────────────────────────────────────────────────────────────────────────
+# GET /fleet/dashboard  — MUST be registered BEFORE /{shipment_code} to avoid shadowing
+# ─────────────────────────────────────────────────────────────────────────────
+
+@router.get("/fleet/dashboard", summary="All active AI interventions across fleet")
+async def fleet_dashboard(db: Session = Depends(get_db)):
+    # Find all recent actions
+    cutoff = datetime.now(timezone.utc)
+    
+    actions = db.query(AIActionModel).order_by(desc(AIActionModel.timestamp)).limit(100).all()
+
+    fleet = []
+    
+    # We want latest action per shipment
+    seen = set()
+    
+    for action in actions:
+        if action.shipment_code in seen:
+            continue
+        seen.add(action.shipment_code)
+        
+        # Get latest risk event
+        ship = db.query(Shipment).filter(Shipment.shipment_code == action.shipment_code).first()
+        risk_score = None
+        risk_category = None
+        if ship:
+            latest_re = db.query(RiskEvent).filter(RiskEvent.shipment_id == ship.id).order_by(desc(RiskEvent.triggered_at)).first()
+            if latest_re:
+                risk_score = float(latest_re.risk_score) if latest_re.risk_score else None
+                risk_category = latest_re.risk_category
+
+        fleet.append({
+            "shipment_code": action.shipment_code,
+            "decision":      action.decision,
+            "ack_status":    action.ack_status or "PENDING",
+            "risk_score":    risk_score,
+            "risk_category": risk_category,
+            "cold_hub":      action.cold_hub,
+            "reroute":       action.reroute,
+            "timestamp":     action.timestamp.isoformat() if action.timestamp else None,
+        })
+
+    fleet.sort(key=lambda x: (x.get("risk_score") or 0), reverse=True)
+    return {"count": len(fleet), "fleet": fleet, "fetched_at": datetime.now(timezone.utc).isoformat()}
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # GET /interventions/{shipmentId}
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -403,50 +449,8 @@ async def reroute_impact(body: RerouteRequest, db: Session = Depends(get_db)):
     return {"shipment_code": body.shipment_code, **impact}
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# GET /fleet/dashboard  — All active interventions
-# ─────────────────────────────────────────────────────────────────────────────
 
-@router.get("/fleet/dashboard", summary="All active AI interventions across fleet")
-async def fleet_dashboard(db: Session = Depends(get_db)):
-    # Find all recent actions
-    cutoff = datetime.now(timezone.utc)
-    
-    actions = db.query(AIActionModel).order_by(desc(AIActionModel.timestamp)).limit(100).all()
-
-    fleet = []
-    
-    # We want latest action per shipment
-    seen = set()
-    
-    for action in actions:
-        if action.shipment_code in seen:
-            continue
-        seen.add(action.shipment_code)
-        
-        # Get latest risk event
-        ship = db.query(Shipment).filter(Shipment.shipment_code == action.shipment_code).first()
-        risk_score = None
-        risk_category = None
-        if ship:
-            latest_re = db.query(RiskEvent).filter(RiskEvent.shipment_id == ship.id).order_by(desc(RiskEvent.triggered_at)).first()
-            if latest_re:
-                risk_score = float(latest_re.risk_score) if latest_re.risk_score else None
-                risk_category = latest_re.risk_category
-
-        fleet.append({
-            "shipment_code": action.shipment_code,
-            "decision":      action.decision,
-            "ack_status":    action.ack_status or "PENDING",
-            "risk_score":    risk_score,
-            "risk_category": risk_category,
-            "cold_hub":      action.cold_hub,
-            "reroute":       action.reroute,
-            "timestamp":     action.timestamp.isoformat() if action.timestamp else None,
-        })
-
-    fleet.sort(key=lambda x: (x.get("risk_score") or 0), reverse=True)
-    return {"count": len(fleet), "fleet": fleet, "fetched_at": datetime.now(timezone.utc).isoformat()}
+# (fleet_dashboard moved above /{shipment_code} to prevent route shadowing)
 
 
 # ─────────────────────────────────────────────────────────────────────────────

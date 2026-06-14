@@ -487,7 +487,7 @@ export function LiveTracking() {
       if (!rt) return ship;
       return {
         ...ship,
-        status: rt.stage === 'IN_TRANSIT' ? 'active' : rt.stage.toLowerCase(),
+        status: rt.stage === 'IN_TRANSIT' ? 'active' : (rt.stage?.toLowerCase() ?? ship.status),
         current_risk: {
           ...ship.current_risk,
           risk_score: rt.risk_score / 100,

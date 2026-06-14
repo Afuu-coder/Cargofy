@@ -1098,8 +1098,8 @@ export function FleetAndDrivers() {
   const vActive  = fleetSummary?.vehicles.active       ?? mergedVehicles.filter(v=>v.status==='active').length;
   const vMaint   = fleetSummary?.vehicles.maintenance  ?? mergedVehicles.filter(v=>v.status==='maintenance').length;
   const avgReefer = fleetSummary?.vehicles.avg_reefer_health ?? Math.round(mergedVehicles.filter(v=>v.reeferHealth>0).reduce((s,v)=>s+v.reeferHealth,0)/Math.max(mergedVehicles.filter(v=>v.reeferHealth>0).length,1));
-  const needService = VEHICLES.filter(v=>v.serviceOverdue||v.nextService.includes('7 days')||v.nextService.includes('4 days')).length;
-  const noIoT = VEHICLES.filter(v=>!v.sensorId).length;
+  const needService = fleetSummary?.vehicles.need_service ?? mergedVehicles.filter(v=>v.serviceOverdue).length;
+  const noIoT = fleetSummary?.vehicles.no_iot_sensor ?? mergedVehicles.filter(v=>!v.sensorId).length;
 
   return (
     <div className="flex flex-col h-screen bg-[#080B12] text-[#F1F5F9] overflow-hidden" style={{fontFamily:'Inter,sans-serif'}}>

@@ -72,6 +72,7 @@ app.add_middleware(
 API_PREFIX = "/api/v1"
 
 app.include_router(auth.router,        prefix=f"{API_PREFIX}/auth",       tags=["Auth"])
+app.include_router(shipment_detail.router, prefix=f"{API_PREFIX}/shipments",      tags=["Shipment Detail"])  # MUST be before shipments.router
 app.include_router(shipments.router,   prefix=f"{API_PREFIX}/shipments",  tags=["Shipments"])
 app.include_router(sensor.router,      prefix=f"{API_PREFIX}/sensors",    tags=["Sensors"])
 app.include_router(alerts.router,      prefix=f"{API_PREFIX}/alerts",     tags=["Alerts"])
@@ -89,7 +90,6 @@ app.include_router(iot_simulator.router,  prefix=f"{API_PREFIX}/tracking",      
 app.include_router(interventions.router,  prefix=f"{API_PREFIX}/interventions",  tags=["Risk & Interventions"])
 app.include_router(simulator.router,      prefix=f"{API_PREFIX}/simulator",      tags=["IoT Simulator"])
 app.include_router(fleet.router,           prefix=f"{API_PREFIX}/fleet",           tags=["Fleet & Drivers"])
-app.include_router(shipment_detail.router, prefix=f"{API_PREFIX}/shipments",      tags=["Shipment Detail"])
 app.include_router(webhook.router,         prefix=f"{API_PREFIX}/webhook",         tags=["Webhooks"])
 app.include_router(notification.router,    prefix=f"{API_PREFIX}/notify",          tags=["Notifications"])
 

@@ -197,6 +197,10 @@ export function ShipmentDetail() {
   const [notes, setNotes]                     = useState<any[]>([]);
   const [aiExpanded, setAiExpanded]           = useState(false);
   const [coldHubExpanded, setColdHubExpanded] = useState(false);
+  // Blockchain certificate state (MUST be before early returns — Rules of Hooks)
+  const [blockchainCert, setBlockchainCert]   = useState<{tx_hash?:string; etherscan_url?:string; verdict?:string; demo_mode?:boolean}|null>(null);
+  const [certifying, setCertifying]           = useState(false);
+  const [verifying,  setVerifying]            = useState(false);
 
   const { data: rtActiveShipments } = useRealtimeData<any>('/active_shipments');
 
@@ -316,10 +320,7 @@ export function ShipmentDetail() {
 
   const isDelivered = displayShipment.status === 'delivered' || displayShipment.status === 'completed';
 
-  // Blockchain certificate state
-  const [blockchainCert, setBlockchainCert] = useState<{tx_hash?:string; etherscan_url?:string; verdict?:string; demo_mode?:boolean}|null>(null);
-  const [certifying, setCertifying] = useState(false);
-  const [verifying,  setVerifying]  = useState(false);
+
 
   async function handleMarkDelivered() {
     if (!id) return;
@@ -395,7 +396,7 @@ export function ShipmentDetail() {
     <div className="flex flex-col h-screen bg-[#080B12] text-[#F1F5F9] overflow-hidden">
       <div className="fixed top-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none">
         {toasts.map(t => (
-          <div key={t.id} className={`px-4 py-3 rounded-lg text-sm font-medium shadow-xl ${t.type==='ok'?'bg-[#0D2B22] border-[#4DD9AC]/40 text-[#4DD9AC]':'bg-[#2B0D0D] border-[#EF4444]/40 text-[#F87171]'}`}>
+          <div key={t.id} className={`px-4 py-3 rounded-lg text-sm font-medium shadow-xl border ${t.type==='ok'?'bg-[#0D2B22] border-[#4DD9AC]/40 text-[#4DD9AC]':'bg-[#2B0D0D] border-[#EF4444]/40 text-[#F87171]'}`}>
             {t.msg}
           </div>
         ))}

@@ -260,10 +260,10 @@ async def get_fleet_positions(db: Session = Depends(get_db)):
     Returns live positions of all active shipments.
     Merges RTDB live_tracking data with Postgres shipment metadata.
     """
-    live_all = None
+    live_all = {}  # RTDB /live_tracking — empty dict when Firebase not configured
 
     # Also get active shipments from RTDB /active_shipments
-    active = None
+    active = {}  # RTDB /active_shipments — empty dict when Firebase not configured
 
     # Merge
     positions = []
@@ -334,9 +334,14 @@ async def stage_override(
 
     ship = _get_shipment_by_code(shipment_code, db)
 
-    # Update RTDB
-    None
-    None
+    # Update Postgres status
+    stage_to_status = {
+        "PENDING": "pending", "LOADING": "loading",
+        "IN_TRANSIT": "active", "NEAR_DESTINATION": "active",
+        "DELIVERED": "delivered",
+    }
+    ship.status = stage_to_status.get(body.new_stage, "active")
+    db.commit()
 
     # Background: Firestore stage event + Pub/Sub
     async def _bg():
@@ -415,7 +420,7 @@ async def check_silence(
     Publishes alerts and marks silence_alert in RTDB.
     """
     # Get all active shipments from RTDB
-    active_raw = None
+    active_raw = {}  # RTDB /active_shipments — empty dict when Firebase not configured
     active_list = [
         {"shipment_code": code, **data}
         for code, data in active_raw.items()
