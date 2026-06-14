@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AxonRouteMap, type RouteData } from '../../components/AxonRouteMap';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useCargoStore } from '../../lib/store';
+import { CargofyRouteMap, type RouteData } from '../../components/CargofyRouteMap';
 
 const WIZARD_API = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000') + '/api/v1/shipments';
 
@@ -296,52 +298,46 @@ export function CreateShipmentBasics() {
       const delivery = form.deliveryDate && form.deliveryTime
         ? new Date(`${form.deliveryDate}T${form.deliveryTime}:00`).toISOString() : undefined;
 
-      // Try wizard /create first; fall back to basic route
       let result: any;
-      const routeSnapshot = (window as any).__axonRouteData as RouteData | undefined;
-      try {
-        const res = await fetch(`${WIZARD_API}/create`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            shipment_id:       shipmentCode,
-            product_type:      form.productType,
-            product_name:      form.productName,
-            quantity:          parseFloat(form.quantity) || 1,
-            quantity_unit:     form.unit.toUpperCase(),
-            priority:          form.priority.toUpperCase(),
-            origin:            form.origin,
-            origin_lat:        (window as any).__axonOriginLat || 26.1445,
-            origin_lng:        (window as any).__axonOriginLng || 91.7362,
-            destination:       form.destination,
-            dest_lat:          (window as any).__axonDestLat || 25.5788,
-            dest_lng:          (window as any).__axonDestLng || 91.8933,
-            vehicle_number:    form.vehicleNumber || undefined,
-            driver_phone:      form.driverPhone || undefined,
-            driver_name:       form.driverName || undefined,
-            iot_device_id:     iotPaired?.device_id || form.iotDevice,
-            simulator_mode:    form.simulate,
-            pickup_scheduled:  pickup,
-            sla_deadline:      delivery,
-            distance_km:       routeSnapshot?.distance_km,
-            duration_min:      routeSnapshot?.duration_min,
-            temp_band_min:     form.tempMin,
-            temp_band_max:     form.tempMax,
-            pre_dispatch_risk: riskPreview,
-          }),
-        });
-        if (!res.ok) throw new Error(await res.text());
-        result = await res.json();
-      } catch (wizardErr) {
-        // Fallback: just return a mock created shipment
-        result = {
-          id: Math.random().toString(36).slice(2),
-          shipment_code: shipmentCode,
-          status: 'active',
-          created_at: new Date().toISOString(),
-          message: 'Shipment created (offline mode)',
-        };
+      const routeSnapshot = (window as any).__cargofyRouteData as RouteData | undefined;
+      const res = await fetch(`${WIZARD_API}/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          shipment_id:       shipmentCode,
+          product_type:      form.productType,
+          product_name:      form.productName,
+          quantity:          parseFloat(form.quantity) || 1,
+          quantity_unit:     form.unit.toUpperCase(),
+          priority:          form.priority.toUpperCase(),
+          origin:            form.origin,
+          origin_lat:        (window as any).__cargofyOriginLat || 26.1445,
+          origin_lng:        (window as any).__cargofyOriginLng || 91.7362,
+          destination:       form.destination,
+          dest_lat:          (window as any).__cargofyDestLat || 25.5788,
+          dest_lng:          (window as any).__cargofyDestLng || 91.8933,
+          vehicle_number:    form.vehicleNumber || undefined,
+          driver_phone:      form.driverPhone || undefined,
+          driver_name:       form.driverName || undefined,
+          iot_device_id:     iotPaired?.device_id || form.iotDevice,
+          simulator_mode:    form.simulate,
+          pickup_scheduled:  pickup,
+          sla_deadline:      delivery,
+          distance_km:       routeSnapshot?.distance_km,
+          duration_min:      routeSnapshot?.duration_min,
+          temp_band_min:     form.tempMin,
+          temp_band_max:     form.tempMax,
+          pre_dispatch_risk: riskPreview,
+        }),
+      });
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(errText || 'Failed to create shipment on backend');
       }
+      result = await res.json();
+      
+      // Force store to reload on next dashboard visit
+      useCargoStore.getState().setLoading(true);
       setCreatedShipment(result);
       setStep(6);
     } catch (err: any) {
@@ -365,7 +361,7 @@ export function CreateShipmentBasics() {
 
       {/* ── Top Nav ──────────────────────────────────────────────────────── */}
       <header className="shrink-0 h-14 bg-[#0A0D14] border-b border-[#1E2530] flex items-center px-4 gap-4 z-40">
-        <div className="text-[#4DD9AC] font-black text-xl tracking-tighter font-mono shrink-0 cursor-pointer" onClick={() => navigate('/dashboard')}>AXON</div>
+        <div className="text-[#4DD9AC] font-black text-xl tracking-tighter font-mono shrink-0 cursor-pointer" onClick={() => navigate('/dashboard')}>CARGOFY</div>
         <div className="flex-1" />
         <div className="text-xs text-[#64748B] hidden md:block">Create Shipment Wizard</div>
         <button onClick={() => navigate('/dashboard')} className="text-xs text-[#64748B] hover:text-[#CBD5E1] transition-colors px-3 py-1.5 border border-[#1E2530] rounded">
@@ -454,11 +450,21 @@ export function CreateShipmentBasics() {
                   <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-lg mb-4">{errors.submit}</div>
                 )}
 
-                {step === 1 && <Step1 form={form} set={set} errors={errors} selectedProduct={selectedProduct} warnings={step1Warnings} />}
-                {step === 2 && <Step2 form={form} set={set} errors={errors} routeInfo={routeInfo} />}
-                {step === 3 && <Step3 form={form} set={set} errors={errors} selectedVehicle={selectedVehicle} selectedDriver={selectedDriver} suggestion={dispatchSuggestion} suggestionLoading={step3Loading} />}
-                {step === 4 && <Step4 form={form} set={set} errors={errors} iotPaired={iotPaired} loading={step4Loading} />}
-                {step === 5 && <Step5 form={form} shipmentCode={shipmentCode} selectedProduct={selectedProduct} selectedVehicle={selectedVehicle} selectedDriver={selectedDriver} routeInfo={routeInfo} riskPreview={riskPreview} riskLoading={step5Loading} />}
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={step}
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -15 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {step === 1 && <Step1 form={form} set={set} errors={errors} selectedProduct={selectedProduct} warnings={step1Warnings} />}
+                    {step === 2 && <Step2 form={form} set={set} errors={errors} routeInfo={routeInfo} />}
+                    {step === 3 && <Step3 form={form} set={set} errors={errors} selectedVehicle={selectedVehicle} selectedDriver={selectedDriver} suggestion={dispatchSuggestion} suggestionLoading={step3Loading} />}
+                    {step === 4 && <Step4 form={form} set={set} errors={errors} iotPaired={iotPaired} loading={step4Loading} />}
+                    {step === 5 && <Step5 form={form} shipmentCode={shipmentCode} selectedProduct={selectedProduct} selectedVehicle={selectedVehicle} selectedDriver={selectedDriver} routeInfo={routeInfo} riskPreview={riskPreview} riskLoading={step5Loading} />}
+                  </motion.div>
+                </AnimatePresence>
 
               </div>
             </div>
@@ -824,11 +830,11 @@ function Step2({ form, set, errors, routeInfo: _routeInfo }: any) {
         };
         setRouteData(rd);
         // Store for final submit payload
-        (window as any).__axonRouteData  = rd;
-        (window as any).__axonOriginLat  = originLat;
-        (window as any).__axonOriginLng  = originLng;
-        (window as any).__axonDestLat    = destLat;
-        (window as any).__axonDestLng    = destLng;
+        (window as any).__cargofyRouteData  = rd;
+        (window as any).__cargofyOriginLat  = originLat;
+        (window as any).__cargofyOriginLng  = originLng;
+        (window as any).__cargofyDestLat    = destLat;
+        (window as any).__cargofyDestLng    = destLng;
       })
       .catch(() => {})
       .finally(() => setMapLoading(false));
@@ -838,15 +844,15 @@ function Step2({ form, set, errors, routeInfo: _routeInfo }: any) {
     set('origin', s.name);
     setOriginLat(s.lat); setOriginLng(s.lng);
     setOriginSugs([]); setOriginFocus(false);
-    (window as any).__axonOriginLat = s.lat;
-    (window as any).__axonOriginLng = s.lng;
+    (window as any).__cargofyOriginLat = s.lat;
+    (window as any).__cargofyOriginLng = s.lng;
   };
   const pickDest = (s:{name:string;lat:number;lng:number}) => {
     set('destination', s.name);
     setDestLat(s.lat); setDestLng(s.lng);
     setDestSugs([]); setDestFocus(false);
-    (window as any).__axonDestLat = s.lat;
-    (window as any).__axonDestLng = s.lng;
+    (window as any).__cargofyDestLat = s.lat;
+    (window as any).__cargofyDestLng = s.lng;
   };
 
   return (
@@ -928,7 +934,7 @@ function Step2({ form, set, errors, routeInfo: _routeInfo }: any) {
       </div>
 
       {/* THE MAP */}
-      <AxonRouteMap
+      <CargofyRouteMap
         originLat={originLat}
         originLng={originLng}
         destLat={destLat}

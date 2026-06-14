@@ -68,7 +68,7 @@ const MODULES = [
     icon: MapPin,
     title: 'Journey Tracking — Not Just a Dot on a Map.',
     name: 'Live Tracking',
-    desc: "Axon tracks every shipment across 9 operational stages. At each stage, the map, ETA, and telemetry update accordingly. Like Swiggy order tracking — but for B2B cold chain.",
+    desc: "Cargofy tracks every shipment across 9 operational stages. At each stage, the map, ETA, and telemetry update accordingly. Like Swiggy order tracking — but for B2B cold chain.",
     bullets: [
       "Stage-aware live map with animated truck position",
       "Route health panel: progress %, ETA drift, delay analysis",
@@ -84,7 +84,7 @@ const MODULES = [
     icon: BrainCircuit,
     title: 'Know Spoilage is Coming — Before It Arrives.',
     name: 'AI Risk & Spoilage Engine',
-    desc: "Axon calculates a real-time risk score (0–100) for every active shipment using 8+ live factors.",
+    desc: "Cargofy calculates a real-time risk score (0–100) for every active shipment using 8+ live factors.",
     bullets: [
       "Risk score updated every 60 seconds",
       "Time-to-spoil estimate",
@@ -102,7 +102,7 @@ const MODULES = [
     icon: Cpu,
     title: 'Test Any Scenario — No Hardware Required.',
     name: 'IoT Simulator',
-    desc: "Axon's built-in simulator lets you model any cold chain condition: heatwave, reefer failure, humidity surge, route delay, or any combination.",
+    desc: "Cargofy's built-in simulator lets you model any cold chain condition: heatwave, reefer failure, humidity surge, route delay, or any combination.",
     bullets: [
       "Map route changes color instantly",
       "Risk score updates live",
@@ -120,7 +120,7 @@ const MODULES = [
     icon: MessageSquareWarning,
     title: 'From Breach to Response in Under 5 Minutes.',
     name: 'Alerts & Escalation',
-    desc: "Axon's alert engine triggers instantly when thresholds are exceeded. Every alert has a communication thread, escalation ladder, and SOP playbook — built in.",
+    desc: "Cargofy's alert engine triggers instantly when thresholds are exceeded. Every alert has a communication thread, escalation ladder, and SOP playbook — built in.",
     bullets: [
       "WhatsApp Business API (primary — drivers always have it)",
       "Push notification (in-app) & SMS fallback",
@@ -136,7 +136,7 @@ const MODULES = [
     icon: Warehouse,
     title: 'Nearest Safe Storage — When You Need It Most.',
     name: 'Cold Hub Recommendations',
-    desc: "When risk rises above threshold, Axon automatically suggests the nearest cold storage facility.",
+    desc: "When risk rises above threshold, Cargofy automatically suggests the nearest cold storage facility.",
     bullets: [
       "Distance from current truck position",
       "Estimated diversion time & capacity availability",
@@ -168,7 +168,7 @@ const MODULES = [
     icon: FileCheck,
     title: 'Every Excursion. Every Action. Documented.',
     name: 'Compliance & Audit Trail',
-    desc: "Axon maintains a full, tamper-proof compliance log for every shipment.",
+    desc: "Cargofy maintains a full, tamper-proof compliance log for every shipment.",
     bullets: [
       "Temperature compliance timeline",
       "Excursion start/end times and durations",
@@ -227,7 +227,7 @@ export const ProductPage: React.FC = () => {
           <div className="flex justify-between items-center h-20">
             <div className="flex-shrink-0 flex items-center">
               <Link to="/" style={{ fontFamily: 'monospace' }} className="text-2xl font-bold tracking-widest text-white hover:text-[#4DD9AC] transition-colors">
-                AXON
+                CARGOFY
               </Link>
             </div>
             <div className="hidden md:flex items-center space-x-8">
@@ -259,7 +259,7 @@ export const ProductPage: React.FC = () => {
             The Cold Chain <br/><span style={{ color: COLORS.teal }}>Operating System</span>
           </h1>
           <p className="mt-4 text-lg md:text-xl text-[#94A3B8] mx-auto mb-10 leading-relaxed max-w-2xl">
-            Axon is not just a monitoring tool. It's a full operational platform — from shipment creation to delivery proof — built specifically for temperature-sensitive logistics.
+            Cargofy is not just a monitoring tool. It's a full operational platform — from shipment creation to delivery proof — built specifically for temperature-sensitive logistics.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <button onClick={() => scrollToModule('control-tower')} className="bg-[#111622] border border-[#1E293B] text-white px-8 py-4 rounded-md font-bold text-lg hover:bg-[#1A2133] transition-colors">
@@ -389,7 +389,7 @@ export const ProductPage: React.FC = () => {
                           <div className="w-3 h-3 rounded-full bg-[#FFB020]"></div>
                           <div className="w-3 h-3 rounded-full bg-[#4DD9AC]"></div>
                         </div>
-                        <div className="text-xs font-mono text-[#94A3B8] opacity-50">AXON_{mod.name.toUpperCase().replace(/\s/g, '_')}</div>
+                        <div className="text-xs font-mono text-[#94A3B8] opacity-50">CARGOFY_{mod.name.toUpperCase().replace(/\s/g, '_')}</div>
                       </div>
                       
                       <div className="flex-1 p-6 relative flex flex-col gap-4">
@@ -441,7 +441,7 @@ export const ProductPage: React.FC = () => {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 style={{ fontFamily: FONTS.display }} className="text-3xl md:text-5xl font-bold text-white mb-4">
-              How Axon Compares
+              How Cargofy Compares
             </h2>
             <p className="text-xl text-[#94A3B8]">The only platform purpose-built for the complexities of the cold chain.</p>
           </div>
@@ -451,24 +451,24 @@ export const ProductPage: React.FC = () => {
               <thead>
                 <tr className="border-b border-[#1E293B]">
                   <th className="p-6 text-[#94A3B8] font-medium w-2/5">Feature</th>
-                  <th className="p-6 border-l border-[#1E293B] bg-[#111622] text-[#4DD9AC] font-bold text-center w-1/5">AXON</th>
+                  <th className="p-6 border-l border-[#1E293B] bg-[#111622] text-[#4DD9AC] font-bold text-center w-1/5">CARGOFY</th>
                   <th className="p-6 border-l border-[#1E293B] text-white font-medium text-center w-1/5">Competitor A</th>
                   <th className="p-6 border-l border-[#1E293B] text-white font-medium text-center w-1/5">Competitor B</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#1E293B]">
                 {[
-                  { feature: "Cold chain specific", axon: "yes", c1: "no", c2: "no" },
-                  { feature: "Real-time IoT integration", axon: "yes", c1: "partial", c2: "yes" },
-                  { feature: "Built-in spoilage prediction", axon: "yes", c1: "no", c2: "no" },
-                  { feature: "AI risk scoring (live)", axon: "yes", c1: "no", c2: "partial" },
-                  { feature: "WhatsApp alert integration", axon: "yes", c1: "yes", c2: "yes" },
-                  { feature: "Cold hub recommendations", axon: "yes", c1: "no", c2: "no" },
-                  { feature: "Shipment stage tracking", axon: "yes", c1: "yes", c2: "partial" },
-                  { feature: "Compliance export", axon: "yes", c1: "partial", c2: "yes" },
-                  { feature: "IoT Simulator (no hardware)", axon: "yes", c1: "no", c2: "no" },
-                  { feature: "India-optimised routes", axon: "yes", c1: "partial", c2: "yes" },
-                  { feature: "Built-in SOP playbooks", axon: "yes", c1: "no", c2: "no" },
+                  { feature: "Cold chain specific", cargofy: "yes", c1: "no", c2: "no" },
+                  { feature: "Real-time IoT integration", cargofy: "yes", c1: "partial", c2: "yes" },
+                  { feature: "Built-in spoilage prediction", cargofy: "yes", c1: "no", c2: "no" },
+                  { feature: "AI risk scoring (live)", cargofy: "yes", c1: "no", c2: "partial" },
+                  { feature: "WhatsApp alert integration", cargofy: "yes", c1: "yes", c2: "yes" },
+                  { feature: "Cold hub recommendations", cargofy: "yes", c1: "no", c2: "no" },
+                  { feature: "Shipment stage tracking", cargofy: "yes", c1: "yes", c2: "partial" },
+                  { feature: "Compliance export", cargofy: "yes", c1: "partial", c2: "yes" },
+                  { feature: "IoT Simulator (no hardware)", cargofy: "yes", c1: "no", c2: "no" },
+                  { feature: "India-optimised routes", cargofy: "yes", c1: "partial", c2: "yes" },
+                  { feature: "Built-in SOP playbooks", cargofy: "yes", c1: "no", c2: "no" },
                 ].map((row, idx) => (
                   <tr key={idx} className="hover:bg-[#111622] transition-colors">
                     <td className="p-6 text-white font-medium">{row.feature}</td>
@@ -570,7 +570,7 @@ export const ProductPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-12 mb-16">
             <div className="col-span-2 md:col-span-1">
-              <div style={{ fontFamily: 'monospace' }} className="text-2xl font-bold tracking-widest text-white mb-6">AXON</div>
+              <div style={{ fontFamily: 'monospace' }} className="text-2xl font-bold tracking-widest text-white mb-6">CARGOFY</div>
             </div>
             <div>
               <h4 className="text-white font-bold mb-6 uppercase tracking-wider text-sm">Platform</h4>
@@ -616,8 +616,8 @@ export const ProductPage: React.FC = () => {
           </div>
           <div className="pt-8 border-t border-[#1E293B] flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-[#64748B] text-sm">
-              © 2024 Axon Smart Supply Chain. All rights reserved.<br/>
-              Built in India 🇮🇳 for the world's cold chains.
+              © 2024 Cargofy Smart Supply Chain. All rights reserved.<br/>
+              Built in India for the world's cold chains.
             </p>
             <div className="flex gap-6 text-[#64748B]">
               <a href="#" className="hover:text-white transition-colors text-sm">Twitter/X</a>

@@ -4,10 +4,11 @@ import {
   getShipment, getSensorHistory, getRiskEvents,
   sendTestAlert, submitPOD, addShipmentNote, updateShipmentStage,
   getShipmentTimeline, getShipmentCompliance,
+  certifyShipment, verifyBlockchainCert,
   type Shipment, type SensorReading, type RiskEvent,
 } from '../../lib/api';
 import { useRealtimeData } from '../../hooks/useRealtimeData';
-import { AxonRouteMap } from '../../components/AxonRouteMap';
+import { CargofyRouteMap } from '../../components/CargofyRouteMap';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type TabId = 'telemetry' | 'alerts' | 'compliance' | 'documents' | 'delivery' | 'notes';
@@ -168,10 +169,10 @@ function TelemetryChart({ readings, tempMin, tempMax }: { readings: SensorReadin
   );
 }
 
-// SVG Route Map removed in favor of AxonRouteMap
+// SVG Route Map removed in favor of CargofyRouteMap
 
 // ── Main Component ────────────────────────────────────────────────────────────
-export function ShipmentDetailAxon() {
+export function ShipmentDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
@@ -293,6 +294,11 @@ export function ShipmentDetailAxon() {
 
   const isDelivered = displayShipment.status === 'delivered' || displayShipment.status === 'completed';
 
+  // Blockchain certificate state
+  const [blockchainCert, setBlockchainCert] = useState<{tx_hash?:string; etherscan_url?:string; verdict?:string; demo_mode?:boolean}|null>(null);
+  const [certifying, setCertifying] = useState(false);
+  const [verifying,  setVerifying]  = useState(false);
+
   async function handleMarkDelivered() {
     if (!id) return;
     try {
@@ -300,8 +306,41 @@ export function ShipmentDetailAxon() {
       toast('✅ Shipment marked as delivered');
       const s = await getShipment(id);
       setShipment(s);
+      // Auto-certify on the blockchain
+      setCertifying(true);
+      try {
+        const cert = await certifyShipment({
+          shipment_code:  s.shipment_code,
+          product_type:   s.product_type,
+          min_temp:       latestSensor?.temperature ?? 4,
+          max_temp:       latestSensor?.temperature ?? 8,
+          max_risk_score: (s.current_risk?.risk_score ?? 0),
+          reroute_count:  0,
+          whatsapp_sent:  true,
+        });
+        setBlockchainCert(cert);
+        toast('🔗 Blockchain certificate issued!');
+      } catch {
+        toast('⚠️ Blockchain cert failed (demo mode ok)', 'warn');
+      } finally {
+        setCertifying(false);
+      }
     } catch {
       toast('⚠️ Could not mark delivered', 'warn');
+    }
+  }
+
+  async function handleVerifyBlockchain() {
+    if (!displayShipment?.shipment_code) return;
+    setVerifying(true);
+    try {
+      const result = await verifyBlockchainCert(displayShipment.shipment_code);
+      setBlockchainCert(result as any);
+      toast(result.found ? '🔗 Certificate verified on-chain!' : '⚠️ No certificate found yet');
+    } catch {
+      toast('⚠️ Could not verify certificate', 'warn');
+    } finally {
+      setVerifying(false);
     }
   }
 
@@ -366,7 +405,7 @@ export function ShipmentDetailAxon() {
           {/* Map */}
           <div className="shrink-0 h-[280px] bg-[#080B12] border-b border-[#1E2530] relative overflow-hidden">
             <div className="absolute inset-0">
-              <AxonRouteMap 
+              <CargofyRouteMap 
                 originLat={displayShipment.origin_lat || undefined}
                 originLng={displayShipment.origin_lng || undefined}
                 destLat={displayShipment.dest_lat || undefined}

@@ -1,7 +1,7 @@
 /**
- * AxonRouteMap — Beautiful interactive Mapbox GL map
+ * CargofyRouteMap — Beautiful interactive Mapbox GL map
  * Shows origin → destination route with:
- *   · Dark "Axon" satellite-streets style
+ *   · Dark "Cargofy" satellite-streets style
  *   · Animated dashed route line with pulsing glow
  *   · Custom origin (green) and destination (red) markers
  *   · Cold hub markers along the route
@@ -96,7 +96,7 @@ function makeHubMarker(available: boolean) {
   ">❄️</div>`;
 }
 
-export function AxonRouteMap({
+export function CargofyRouteMap({
   originLat, originLng, destLat, destLng,
   originName = 'Origin', destName = 'Destination',
   routeData, loading = false, className = '', style,
@@ -276,7 +276,7 @@ export function AxonRouteMap({
       el.innerHTML = makeMarker('#4DD9AC', '📍');
       const m = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
         .setLngLat([originLng!, originLat!])
-        .setPopup(new mapboxgl.Popup({ offset: 30, className: 'axon-popup' })
+        .setPopup(new mapboxgl.Popup({ offset: 30, className: 'cargofy-popup' })
           .setHTML(`<div style="background:#0D1117;color:#F1F5F9;padding:8px 12px;border-radius:8px;font-size:12px;font-family:Inter,sans-serif;border:1px solid #1E2530;">
             <div style="color:#4DD9AC;font-weight:700;margin-bottom:2px;">📍 Origin</div>
             <div>${originName}</div>
@@ -291,7 +291,7 @@ export function AxonRouteMap({
       el.innerHTML = makeMarker('#EF4444', '🏁');
       const m = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
         .setLngLat([destLng!, destLat!])
-        .setPopup(new mapboxgl.Popup({ offset: 30, className: 'axon-popup' })
+        .setPopup(new mapboxgl.Popup({ offset: 30, className: 'cargofy-popup' })
           .setHTML(`<div style="background:#0D1117;color:#F1F5F9;padding:8px 12px;border-radius:8px;font-size:12px;font-family:Inter,sans-serif;border:1px solid #1E2530;">
             <div style="color:#EF4444;font-weight:700;margin-bottom:2px;">🏁 Destination</div>
             <div>${destName}</div>
@@ -372,7 +372,7 @@ export function AxonRouteMap({
       el.innerHTML = makeHubMarker(hub.capacity_available);
       const m = new mapboxgl.Marker({ element: el, anchor: 'center' })
         .setLngLat([hub.lng, hub.lat])
-        .setPopup(new mapboxgl.Popup({ offset: 20, className: 'axon-popup' })
+        .setPopup(new mapboxgl.Popup({ offset: 20, className: 'cargofy-popup' })
           .setHTML(`<div style="background:#0D1117;color:#F1F5F9;padding:8px 12px;border-radius:8px;font-size:11px;font-family:Inter,sans-serif;border:1px solid #1E2530;">
             <div style="color:#4DD9AC;font-weight:700;margin-bottom:4px;">❄️ Cold Hub</div>
             <div style="font-weight:600">${hub.name}</div>
@@ -398,7 +398,7 @@ export function AxonRouteMap({
       {/* Map container */}
       <div ref={mapContainer} style={{ width: '100%', height: '100%', minHeight: '320px' }} />
 
-      {/* Top-left: Axon badge */}
+      {/* Top-left: Cargofy badge */}
       <div style={{
         position: 'absolute', top: 12, left: 12, zIndex: 10,
         background: 'rgba(8,11,18,0.85)', backdropFilter: 'blur(8px)',
@@ -406,7 +406,7 @@ export function AxonRouteMap({
         padding: '6px 12px',
         display: 'flex', alignItems: 'center', gap: 6,
       }}>
-        <span style={{ color: '#4DD9AC', fontWeight: 800, fontFamily: 'monospace', fontSize: 13 }}>AXON</span>
+        <span style={{ color: '#4DD9AC', fontWeight: 800, fontFamily: 'monospace', fontSize: 13 }}>CARGOFY</span>
         <span style={{ color: '#374151', fontSize: 10 }}>│</span>
         <span style={{ color: '#64748B', fontSize: 10, fontFamily: 'Inter,sans-serif' }}>ROUTE INTELLIGENCE</span>
       </div>
@@ -489,13 +489,13 @@ export function AxonRouteMap({
         @keyframes spin {
           to { transform: rotate(360deg); }
         }
-        .axon-popup .mapboxgl-popup-content {
+        .cargofy-popup .mapboxgl-popup-content {
           background: transparent !important;
           padding: 0 !important;
           border-radius: 0 !important;
           box-shadow: none !important;
         }
-        .axon-popup .mapboxgl-popup-tip { display: none !important; }
+        .cargofy-popup .mapboxgl-popup-tip { display: none !important; }
         .mapboxgl-ctrl-attrib { display: none !important; }
       `}</style>
     </div>

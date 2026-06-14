@@ -1,11 +1,16 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   getAlerts, getShipments, sendTestAlert,
   sendManualAlert, resendAlert, markAlertFalsePositive, getLiveAlerts,
   type Alert, type Shipment, type LiveAlert,
 } from '../../lib/api';
 import { useRealtimeData } from '../../hooks/useRealtimeData';
+import {
+  Bell, Map, CheckCircle, AlertTriangle, ShieldAlert, Zap, ThermometerSnowflake, Route, Package, Activity, Droplets, Clock, DoorOpen, WifiOff, MapPin, Navigation, Settings, LayoutDashboard, SlidersHorizontal, Eye, FileText, ChevronDown, MessageSquareWarning, Phone, Search, ArrowRight, X,
+  Bot, GitBranch, Sparkles, CheckCheck, RefreshCw, ChevronRight, Loader2
+} from 'lucide-react';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -13,7 +18,7 @@ import { useRealtimeData } from '../../hooks/useRealtimeData';
 interface EnrichedAlert extends Alert {
   severity:  'CRITICAL'|'HIGH'|'MEDIUM'|'LOW';
   alertType: string;
-  typeIcon:  string;
+  typeIcon:  React.ReactNode;
   resolved:  boolean;
   acknowledged: boolean;
   escalated: boolean;
@@ -22,7 +27,7 @@ interface EnrichedAlert extends Alert {
   triggerText: string;
   shipCode:  string;
   route:     string;
-  productIcon: string;
+  productIcon: React.ReactNode;
   escalateCountdown: number; // seconds, 0 means escalated
   thread:    ThreadMsg[];
 }
@@ -35,18 +40,24 @@ interface ThreadMsg {
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
-const PRODUCT_ICONS: Record<string,string> = { dairy:'🥛',milk:'🥛',seafood:'🐟',fish:'🐟',produce:'🥦',frozen:'🧊',pharma:'💊',fruits:'🍎',meat:'🥩',other:'📦' };
-const pIcon = (t?:string) => PRODUCT_ICONS[t?.toLowerCase()??''] ?? '📦';
+const PRODUCT_ICONS: Record<string, React.ReactNode> = {
+  dairy: <ThermometerSnowflake size={14} />, milk: <ThermometerSnowflake size={14} />,
+  seafood: <ThermometerSnowflake size={14} />, fish: <ThermometerSnowflake size={14} />,
+  frozen: <ThermometerSnowflake size={14} />, meat: <ThermometerSnowflake size={14} />,
+  produce: <Package size={14} />, vegetables: <Package size={14} />, pharma: <Activity size={14} />,
+  fruits: <Package size={14} />, other: <Package size={14} />,
+};
+const pIcon = (t?:string): React.ReactNode => PRODUCT_ICONS[t?.toLowerCase()??''] ?? <Package size={14} />;
 
 const ALERT_TYPES = [
-  { key:'temp',     icon:'🌡', label:'Temperature Breach',  sev:'CRITICAL' as const },
-  { key:'humid',    icon:'💧', label:'Humidity Spike',       sev:'HIGH' as const },
-  { key:'delay',    icon:'⏱', label:'Delay Warning',        sev:'HIGH' as const },
-  { key:'reefer',   icon:'❄️',  label:'Reefer Failure',      sev:'CRITICAL' as const },
-  { key:'door',     icon:'🚪', label:'Door Open',            sev:'HIGH' as const },
-  { key:'offline',  icon:'📡', label:'Driver Offline',       sev:'HIGH' as const },
-  { key:'signal',   icon:'📶', label:'GPS Signal Lost',      sev:'MEDIUM' as const },
-  { key:'sla',      icon:'📋', label:'SLA Risk',             sev:'MEDIUM' as const },
+  { key:'temp',     icon: <ThermometerSnowflake size={16} />, label:'Temperature Breach',  sev:'CRITICAL' as const },
+  { key:'humid',    icon: <Droplets size={16} />, label:'Humidity Spike',       sev:'HIGH' as const },
+  { key:'delay',    icon: <Clock size={16} />, label:'Delay Warning',        sev:'HIGH' as const },
+  { key:'reefer',   icon: <Zap size={16} />,  label:'Reefer Failure',      sev:'CRITICAL' as const },
+  { key:'door',     icon: <DoorOpen size={16} />, label:'Door Open',            sev:'HIGH' as const },
+  { key:'offline',  icon: <WifiOff size={16} />, label:'Driver Offline',       sev:'HIGH' as const },
+  { key:'signal',   icon: <MapPin size={16} />, label:'GPS Signal Lost',      sev:'MEDIUM' as const },
+  { key:'sla',      icon: <FileText size={16} />, label:'SLA Risk',             sev:'MEDIUM' as const },
 ];
 
 function pickType() { return ALERT_TYPES[Math.floor(Math.random()*ALERT_TYPES.length)]; }
@@ -66,9 +77,9 @@ function sevColor(sev?: string) {
 }
 
 const TEMPLATE_ALERTS = [
-  { id:'t1', severity:'CRITICAL' as const, alertType:'Temperature Breach', typeIcon:'🌡',
+  { id:'t1', severity:'CRITICAL' as const, alertType:'Temperature Breach', typeIcon: <ThermometerSnowflake size={14}/>,
     driver:'Ramesh Kumar', channel:'WhatsApp', shipCode:'AXN-2091', route:'Guwahati → Shillong',
-    productIcon:'🥛', resolved:false, acknowledged:false, escalated:false,
+    productIcon: <ThermometerSnowflake size={14}/>, resolved:false, acknowledged:false, escalated:false,
     escalateCountdown:262,
     triggerText:'Cargo temp 9.8°C — 3.8° above safe max (6°C). Breach ongoing 22 min.',
     created_at: new Date(Date.now()-22*60000).toISOString(),
@@ -82,9 +93,9 @@ const TEMPLATE_ALERTS = [
       {time:'08:26:14', who:'inbound'  as const, text:'Calling driver now', name:'Sunil Mehta'},
     ]
   },
-  { id:'t2', severity:'HIGH' as const, alertType:'Humidity Spike', typeIcon:'💧',
+  { id:'t2', severity:'HIGH' as const, alertType:'Humidity Spike', typeIcon: <Droplets size={14}/>,
     driver:'Suresh Pandey', channel:'WhatsApp', shipCode:'AXN-3044', route:'Jorhat → Kohima',
-    productIcon:'🐟', resolved:false, acknowledged:true, escalated:false,
+    productIcon: <ThermometerSnowflake size={14}/>, resolved:false, acknowledged:true, escalated:false,
     escalateCountdown:0,
     triggerText:'Humidity 84% — above 75% safe limit. Seafood packaging at risk.',
     created_at: new Date(Date.now()-75*60000).toISOString(),
@@ -97,9 +108,9 @@ const TEMPLATE_ALERTS = [
       {time:'07:52:00', who:'inbound'  as const, text:'Resealed the boxes. Humidity still 81% but dropping slowly.', name:'Suresh Pandey'},
     ]
   },
-  { id:'t3', severity:'CRITICAL' as const, alertType:'Reefer Failure', typeIcon:'❄️',
+  { id:'t3', severity:'CRITICAL' as const, alertType:'Reefer Failure', typeIcon: <Zap size={14}/>,
     driver:'Dev Nair', channel:'WhatsApp', shipCode:'AXN-2841', route:'Dibrugarh → Itanagar',
-    productIcon:'💊', resolved:false, acknowledged:false, escalated:true,
+    productIcon: <Activity size={14}/>, resolved:false, acknowledged:false, escalated:true,
     escalateCountdown:0,
     triggerText:'Reefer compressor stopped. Temp rising at 1.2°C/min. Pharma cargo critical.',
     created_at: new Date(Date.now()-45*60000).toISOString(),
@@ -113,9 +124,9 @@ const TEMPLATE_ALERTS = [
       {time:'07:04:00', who:'inbound'    as const, text:'Called driver. He\'s pulled over at NH-37. Calling nearest cold hub now.', name:'Ananya Singh'},
     ]
   },
-  { id:'t4', severity:'LOW' as const, alertType:'Delay Warning', typeIcon:'⏱',
+  { id:'t4', severity:'LOW' as const, alertType:'Delay Warning', typeIcon: <Clock size={14}/>,
     driver:'Anuj Sharma', channel:'Push', shipCode:'AXN-1998', route:'Mumbai → Pune',
-    productIcon:'🍎', resolved:true, acknowledged:true, escalated:false,
+    productIcon: <Package size={14}/>, resolved:true, acknowledged:true, escalated:false,
     escalateCountdown:0,
     triggerText:'Delay +28 min — SLA at risk. Rerouted via Expressway alternate.',
     created_at: new Date(Date.now()-110*60000).toISOString(),
@@ -128,9 +139,9 @@ const TEMPLATE_ALERTS = [
       {time:'06:22:00', who:'system'   as const, text:'Resolved — Delivered on time. Resolution: 11 min 42 sec.'},
     ]
   },
-  { id:'t5', severity:'MEDIUM' as const, alertType:'GPS Signal Lost', typeIcon:'📡',
+  { id:'t5', severity:'MEDIUM' as const, alertType:'GPS Signal Lost', typeIcon: <MapPin size={14}/>,
     driver:'Priya Das', channel:'SMS', shipCode:'AXN-2094', route:'Silchar → Imphal',
-    productIcon:'🥦', resolved:true, acknowledged:true, escalated:false,
+    productIcon: <Package size={14}/>, resolved:true, acknowledged:true, escalated:false,
     escalateCountdown:0,
     triggerText:'GPS signal lost for 12 min in tunnel zone. Signal restored auto.',
     created_at: new Date(Date.now()-140*60000).toISOString(),
@@ -144,22 +155,22 @@ const TEMPLATE_ALERTS = [
 ];
 
 const TEMPLATES = [
-  { id:'tpl1', icon:'🌡', name:'Temperature Excursion', product:'Dairy',
+  { id:'tpl1', icon: <ThermometerSnowflake size={14}/>, name:'Temperature Excursion', product:'Dairy',
     body:'⚠️ URGENT: Your cargo is above safe temperature.\nCurrent: {temp}°C — Safe max: {safe_max}°C.\nPlease check reefer immediately.\nCargofy ID: {shipment_id}',
     vars:['{temp}','{safe_max}','{shipment_id}'], default:true },
-  { id:'tpl2', icon:'⏱', name:'Transit Delay — SLA Warning', product:'All',
+  { id:'tpl2', icon: <Clock size={14}/>, name:'Transit Delay — SLA Warning', product:'All',
     body:'📍 Update: Your shipment {shipment_id} is delayed by {delay_min} min.\nCurrent ETA: {eta}.\nPlease update route if possible.',
     vars:['{shipment_id}','{delay_min}','{eta}'], default:false },
-  { id:'tpl3', icon:'💧', name:'Humidity Spike', product:'Seafood',
+  { id:'tpl3', icon: <Droplets size={14}/>, name:'Humidity Spike', product:'Seafood',
     body:'💧 Humidity alert: {humidity}% detected.\nSafe limit: 75%. Check cargo packaging.\nSeafood SOP: seal any open containers.',
     vars:['{humidity}'], default:false },
-  { id:'tpl4', icon:'🛣️', name:'Route Deviation', product:'All',
+  { id:'tpl4', icon: <Route size={14}/>, name:'Route Deviation', product:'All',
     body:'🛣️ Route deviation on {shipment_id}.\nYou appear off planned route.\nPlease confirm route or call dispatch.',
     vars:['{shipment_id}'], default:false },
-  { id:'tpl5', icon:'✅', name:'Delivery Confirmation Request', product:'All',
+  { id:'tpl5', icon: <CheckCircle size={14}/>, name:'Delivery Confirmation Request', product:'All',
     body:'✅ Please confirm delivery of {shipment_id} to {destination}.\nReply with POD or call.',
     vars:['{shipment_id}','{destination}'], default:false },
-  { id:'tpl6', icon:'🚨', name:'Immediate Cooling Action', product:'Pharma',
+  { id:'tpl6', icon: <ShieldAlert size={14}/>, name:'Immediate Cooling Action', product:'Pharma',
     body:'🚨 CRITICAL: Cargo temp {temp}°C is too high.\nReduce reefer immediately or call +91 xxx.\nIf reefer fails, stop at nearest cold hub.',
     vars:['{temp}'], default:false },
 ];
@@ -217,13 +228,13 @@ function AlertCard({ alert: a, selected, onClick }: { alert: EnrichedAlert; sele
 
       {/* Header */}
       <div className="flex items-center gap-2 mb-2">
-        <span className="text-xs font-black" style={{color}}>{a.typeIcon} {a.severity}</span>
+        <span className="text-xs font-black flex items-center gap-1.5" style={{color}}>{a.typeIcon} {a.severity}</span>
         <span className="text-[10px] text-[#64748B] ml-auto">{fmtTime(a.created_at)}</span>
       </div>
       <div className="text-xs font-semibold text-[#F1F5F9] mb-1">{a.alertType}</div>
 
       {/* Shipment info */}
-      <div className="text-[10px] text-[#64748B] mb-2">
+      <div className="text-[10px] text-[#64748B] mb-2 flex items-center gap-1.5">
         {a.shipCode} · {a.productIcon} {a.route}
       </div>
 
@@ -258,11 +269,12 @@ function AlertDetail({ alert: a, onAction }: { alert: EnrichedAlert; onAction: (
   const [reply, setReply] = useState('');
   const [noteMode, setNoteMode] = useState(false);
   const [thread, setThread] = useState<ThreadMsg[]>(a.thread);
+  const [detailTab, setDetailTab] = useState<'thread'|'agent'|'playbook'>('thread');
   const navigate = useNavigate();
   const color = sevColor(a.severity);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { setThread(a.thread); }, [a.id]);
+  useEffect(() => { setThread(a.thread); setDetailTab('thread'); }, [a.id]);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -281,19 +293,54 @@ function AlertDetail({ alert: a, onAction }: { alert: EnrichedAlert; onAction: (
       <div className="shrink-0 px-5 py-4 border-b border-[#1E2530] bg-[#0A0D14] sticky top-0 z-10">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-black px-2 py-0.5 rounded-full" style={{color, background:`${color}18`}}>
+            <span className="text-xs font-black px-2 py-1 rounded-full flex items-center gap-1.5" style={{color, background:`${color}18`}}>
               {a.typeIcon} {a.severity}
             </span>
             <span className="font-mono text-sm font-black text-[#F1F5F9]">{a.alertType}</span>
           </div>
-          <button onClick={() => navigate(`/shipments/${a.shipment_id}`)} className="text-[10px] text-[#64748B] hover:text-[#4DD9AC] border border-[#1E2530] px-2 py-1 rounded transition-colors">
-            {a.shipCode} →
+          <button onClick={() => navigate(`/shipments/${a.shipment_id}`)} className="text-[10px] text-[#64748B] hover:text-[#4DD9AC] border border-[#1E2530] px-2 py-1 rounded flex items-center gap-1 transition-colors">
+            {a.shipCode} <ArrowRight size={12}/>
           </button>
         </div>
-        <div className="text-xs text-[#64748B]">{a.shipCode} · {a.productIcon} {a.route}</div>
+        <div className="text-xs text-[#64748B] flex items-center gap-1.5">{a.shipCode} · {a.productIcon} {a.route}</div>
         <div className="text-xs text-[#94A3B8] mt-1 leading-relaxed">{a.triggerText}</div>
+
+        {/* Sub-tab switcher */}
+        <div className="flex gap-1 mt-3">
+          {([
+            { k:'thread',   label:'💬 Thread' },
+            { k:'agent',    label:'🤖 AI Agent' },
+            { k:'playbook', label:'🧩 Playbook' },
+          ] as {k: 'thread'|'agent'|'playbook'; label:string}[]).map(t => (
+            <button key={t.k} onClick={() => setDetailTab(t.k)}
+              className={`text-[10px] font-semibold px-3 py-1 rounded-full transition-all ${
+                detailTab === t.k
+                  ? 'bg-[#4DD9AC] text-[#003829]'
+                  : 'bg-[#111827] text-[#64748B] border border-[#1E2530] hover:text-[#CBD5E1]'
+              }`}>
+              {t.label}
+            </button>
+          ))}
+        </div>
       </div>
 
+      {/* AI Agent Feed Tab */}
+      {detailTab === 'agent' && (
+        <div className="flex-1 overflow-hidden">
+          <AgentLiveFeed alert={a} />
+        </div>
+      )}
+
+      {/* Playbook Tab */}
+      {detailTab === 'playbook' && (
+        <div className="flex-1 overflow-y-auto">
+          <PlaybookViewer alert={a} />
+        </div>
+      )}
+
+      {/* Thread Tab */}
+      {detailTab === 'thread' && (
+      <>
       {/* Thread */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
         {thread.map((msg, i) => {
@@ -332,15 +379,15 @@ function AlertDetail({ alert: a, onAction }: { alert: EnrichedAlert; onAction: (
         <div className="text-[9px] text-[#64748B] uppercase tracking-widest mb-2">Quick Actions</div>
         <div className="grid grid-cols-3 gap-1.5 mb-3">
           {[
-            {icon:'📤', label:'Resend to Driver', act:'resend'},
-            {icon:'📞', label:'Call Driver', act:'call'},
-            {icon:'🚨', label:'Escalate Further', act:'escalate'},
-            {icon:'✅', label:'Mark Resolved', act:'resolve'},
-            {icon:'❌', label:'False Positive', act:'fp'},
-            {icon:'📝', label:'Add Note', act:'note'},
+            {icon: <Bell size={12}/>, label:'Resend', act:'resend'},
+            {icon: <Phone size={12}/>, label:'Call Driver', act:'call'},
+            {icon: <ShieldAlert size={12}/>, label:'Escalate', act:'escalate'},
+            {icon: <CheckCircle size={12}/>, label:'Resolve', act:'resolve'},
+            {icon: <X size={12}/>, label:'False Pos.', act:'fp'},
+            {icon: <FileText size={12}/>, label:'Note', act:'note'},
           ].map(b=>(
             <button key={b.act} onClick={()=>b.act==='note'?setNoteMode(n=>!n):onAction(b.act, a.id)}
-              className="text-[10px] bg-[#111827] border border-[#1E2530] text-[#94A3B8] hover:text-[#F1F5F9] hover:border-[#374151] py-1.5 px-1 rounded-lg transition-colors text-center">
+              className="text-[10px] bg-[#111827] border border-[#1E2530] text-[#94A3B8] hover:text-[#F1F5F9] hover:border-[#374151] py-1.5 px-1 rounded-lg transition-colors flex items-center justify-center gap-1">
               {b.icon} {b.label}
             </button>
           ))}
@@ -357,14 +404,16 @@ function AlertDetail({ alert: a, onAction }: { alert: EnrichedAlert; onAction: (
 
         {/* Related links */}
         <div className="flex gap-2">
-          <button onClick={()=>navigate(`/shipments/${a.shipment_id}`)} className="flex-1 text-[10px] text-[#64748B] border border-[#1E2530] py-1.5 rounded-lg hover:text-[#4DD9AC] hover:border-[#4DD9AC]/30 transition-colors">
-            📦 Open Shipment Detail →
+          <button onClick={()=>navigate(`/shipments/${a.shipment_id}`)} className="flex-1 text-[10px] text-[#64748B] border border-[#1E2530] py-1.5 rounded-lg hover:text-[#4DD9AC] hover:border-[#4DD9AC]/30 transition-colors flex items-center justify-center gap-1.5">
+            <Package size={12}/> Open Shipment Detail <ArrowRight size={10}/>
           </button>
-          <button onClick={()=>navigate(`/live-tracking`)} className="flex-1 text-[10px] text-[#64748B] border border-[#1E2530] py-1.5 rounded-lg hover:text-[#60A5FA] hover:border-[#60A5FA]/30 transition-colors">
-            📡 Live Tracking →
+          <button onClick={()=>navigate(`/live-tracking`)} className="flex-1 text-[10px] text-[#64748B] border border-[#1E2530] py-1.5 rounded-lg hover:text-[#60A5FA] hover:border-[#60A5FA]/30 transition-colors flex items-center justify-center gap-1.5">
+            <MapPin size={12}/> Live Tracking <ArrowRight size={10}/>
           </button>
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 }
@@ -438,7 +487,7 @@ function EscalationTab() {
                 <span className="text-xs font-black" style={{color}}>{rule.level}</span>
                 <span className="text-xs text-[#64748B] ml-2">— {rule.product}</span>
               </div>
-              <button className="text-[10px] text-[#64748B] border border-[#1E2530] px-2 py-1 rounded hover:text-[#4DD9AC] hover:border-[#4DD9AC]/30 transition-colors">✏️ Edit Path</button>
+              <button className="text-[10px] text-[#64748B] border border-[#1E2530] px-2 py-1 rounded flex items-center gap-1 hover:text-[#4DD9AC] hover:border-[#4DD9AC]/30 transition-colors"><Settings size={10}/> Edit Path</button>
             </div>
             <div className="px-4 py-3 space-y-2">
               {rule.steps.map((s,i)=>(
@@ -459,8 +508,8 @@ function EscalationTab() {
       {/* Team */}
       <div className="bg-[#111827] border border-[#1E2530] rounded-xl overflow-hidden">
         <div className="px-4 py-3 border-b border-[#1E2530] flex items-center justify-between">
-          <div className="text-sm font-bold text-[#F1F5F9]">👥 Team Members</div>
-          <button className="text-[10px] text-[#64748B] border border-[#1E2530] px-2 py-1 rounded hover:text-[#4DD9AC] hover:border-[#4DD9AC]/30 transition-colors">✏️ Edit Team</button>
+          <div className="text-sm font-bold text-[#F1F5F9] flex items-center gap-1.5"><LayoutDashboard size={14}/> Team Members</div>
+          <button className="text-[10px] text-[#64748B] border border-[#1E2530] px-2 py-1 rounded flex items-center gap-1 hover:text-[#4DD9AC] hover:border-[#4DD9AC]/30 transition-colors"><Settings size={10}/> Edit Team</button>
         </div>
         <table className="w-full text-xs">
           <thead className="bg-[#0D1117]">
@@ -479,6 +528,323 @@ function EscalationTab() {
           </tbody>
         </table>
       </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 🤖 HACKATHON UPGRADE 1 — Agentic WhatsApp Live Feed
+// Shows the LangGraph agent autonomously composing and sending messages
+// ─────────────────────────────────────────────────────────────────────────────
+interface AgentMsg {
+  id: string; role: 'agent'|'driver'|'system'|'escalation';
+  text: string; ts: string; typing?: boolean; channel?: string;
+}
+
+const AGENT_SCRIPTS: Record<string, AgentMsg[]> = {
+  CRITICAL: [
+    { id:'a1', role:'system',    ts:'00:00', text:'🔴 LangGraph Agent activated — CRITICAL breach on {code}. Initiating autonomous protocol.' },
+    { id:'a2', role:'agent',     ts:'00:02', text:'🌡️ URGENT: {code} cargo at 9.8°C — 3.8° above safe max. Compressor running at 98% load. STOP and check reefer now.', channel:'WhatsApp' },
+    { id:'a3', role:'system',    ts:'02:00', text:'⚠️ No driver response after 2 min. Agent escalating automatically…' },
+    { id:'a4', role:'escalation',ts:'02:05', text:'🚨 Auto-escalating to Fleet Manager Sunil Mehta via WhatsApp + Call' },
+    { id:'a5', role:'agent',     ts:'02:06', text:'URGENT — Driver unresponsive on {code}. Reefer failure risk. Please call immediately.', channel:'WhatsApp to Sunil Mehta' },
+    { id:'a6', role:'driver',    ts:'04:10', text:'On it. Called driver. He\'s pulling over at NH-37.' },
+    { id:'a7', role:'system',    ts:'04:15', text:'✅ Agent logged intervention. Nearest cold hub pinged. Estimated save: ₹1.8L cargo value.' },
+  ],
+  HIGH: [
+    { id:'b1', role:'system',    ts:'00:00', text:'🟡 LangGraph Agent monitoring — HIGH humidity on {code}. Composing advisory.' },
+    { id:'b2', role:'agent',     ts:'00:05', text:'💧 Humidity at 84% — safe limit 75%. Seafood packaging at risk. Please reseal any open containers immediately. SOP-HUM-02.', channel:'WhatsApp' },
+    { id:'b3', role:'driver',    ts:'02:10', text:'Checking packaging now…' },
+    { id:'b4', role:'driver',    ts:'07:00', text:'Resealed boxes. Humidity dropping, now at 81%.' },
+    { id:'b5', role:'system',    ts:'07:05', text:'✅ Agent logging driver ACK. Monitoring for next 15 min. Risk downgraded to MEDIUM.' },
+  ],
+  MEDIUM: [
+    { id:'c1', role:'system',    ts:'00:00', text:'ℹ️ LangGraph Agent monitoring — GPS signal lost for {code}. Waiting for auto-restore.' },
+    { id:'c2', role:'agent',     ts:'00:30', text:'📡 Your GPS appears offline. No action needed if in tunnel zone. Please confirm location when signal returns.', channel:'SMS' },
+    { id:'c3', role:'system',    ts:'12:00', text:'✅ GPS restored automatically. No action required. Agent closing case.' },
+  ],
+};
+
+function AgentLiveFeed({ alert }: { alert: EnrichedAlert }) {
+  const script = AGENT_SCRIPTS[alert.severity] ?? AGENT_SCRIPTS['MEDIUM'];
+  const [visible, setVisible] = useState<AgentMsg[]>([]);
+  const [typing, setTyping]   = useState(false);
+  const [running, setRunning] = useState(false);
+  const [done, setDone]       = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const timerRef  = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  useEffect(() => { return () => { timerRef.current.forEach(clearTimeout); }; }, []);
+  useEffect(() => {
+    setVisible([]); setTyping(false); setRunning(false); setDone(false);
+    timerRef.current.forEach(clearTimeout); timerRef.current = [];
+  }, [alert.id]);
+
+  function fillCode(text: string) {
+    return text.replace(/\{code\}/g, alert.shipCode);
+  }
+
+  function runSimulation() {
+    setRunning(true); setVisible([]); setDone(false);
+    timerRef.current.forEach(clearTimeout); timerRef.current = [];
+    let delay = 400;
+    script.forEach((msg, i) => {
+      if (msg.role === 'agent') {
+        const t1 = setTimeout(() => setTyping(true),  delay);
+        timerRef.current.push(t1);
+        delay += 1400;
+        const t2 = setTimeout(() => {
+          setTyping(false);
+          setVisible(v => [...v, msg]);
+        }, delay);
+        timerRef.current.push(t2);
+        delay += 700;
+      } else {
+        const t = setTimeout(() => setVisible(v => [...v, msg]), delay);
+        timerRef.current.push(t);
+        delay += 900;
+      }
+      if (i === script.length - 1) {
+        const tf = setTimeout(() => { setRunning(false); setDone(true); }, delay + 400);
+        timerRef.current.push(tf);
+      }
+    });
+  }
+
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }, [visible, typing]);
+
+  const roleStyle = (role: string) => {
+    if (role === 'agent')     return { bg: 'bg-[#0D2B1E] border-[#4DD9AC]/30', text: 'text-[#F1F5F9]', align: 'items-end', bubble: 'rounded-tr-sm' };
+    if (role === 'driver')    return { bg: 'bg-[#111827] border-[#1E2530]',    text: 'text-[#CBD5E1]', align: 'items-start', bubble: 'rounded-tl-sm' };
+    if (role === 'escalation')return { bg: 'bg-[#1a0b2e] border-[#A78BFA]/30',text: 'text-[#C084FC]', align: 'items-center', bubble: '' };
+    return { bg: 'bg-transparent border-transparent', text: 'text-[#64748B]', align: 'items-center', bubble: '' };
+  };
+
+  return (
+    <div className="flex flex-col h-full bg-[#080B12]">
+      {/* Header */}
+      <div className="shrink-0 px-4 py-3 bg-[#0A0D14] border-b border-[#1E2530] flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <motion.div animate={{ scale: running ? [1, 1.2, 1] : 1 }} transition={{ repeat: Infinity, duration: 1.5 }}>
+            <Bot size={16} className="text-[#4DD9AC]" />
+          </motion.div>
+          <div>
+            <div className="text-xs font-bold text-[#F1F5F9] flex items-center gap-1.5">
+              LangGraph Agent
+              {running && <span className="text-[10px] text-[#4DD9AC] animate-pulse">● ACTIVE</span>}
+              {done && <span className="text-[10px] text-[#34D399]">✓ COMPLETE</span>}
+            </div>
+            <div className="text-[10px] text-[#64748B]">Autonomous intervention · {alert.shipCode}</div>
+          </div>
+        </div>
+        <motion.button
+          whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+          onClick={runSimulation} disabled={running}
+          className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-bold transition-all ${
+            running ? 'bg-[#4DD9AC]/10 text-[#4DD9AC] cursor-wait' : 'bg-[#4DD9AC] text-[#003829] hover:bg-[#6EF6C7]'
+          }`}>
+          {running ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+          {running ? 'Running…' : done ? 'Re-run' : 'Run Agent'}
+        </motion.button>
+      </div>
+
+      {/* Chat window */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+        {visible.length === 0 && !running && (
+          <div className="flex flex-col items-center justify-center h-32 gap-3 opacity-50">
+            <Bot size={32} className="text-[#4DD9AC]" />
+            <p className="text-xs text-[#64748B] text-center">Click <strong>Run Agent</strong> to simulate the LangGraph autonomous intervention for this alert</p>
+          </div>
+        )}
+        <AnimatePresence>
+          {visible.map(msg => {
+            const s = roleStyle(msg.role);
+            if (msg.role === 'system' || msg.role === 'escalation') return (
+              <motion.div key={msg.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+                className={`flex justify-center`}>
+                <span className={`text-[10px] px-3 py-1.5 rounded-lg border max-w-[90%] text-center leading-relaxed ${s.bg} ${s.text} border-${msg.role === 'escalation' ? '[#A78BFA]/25' : '[#1E2530]'}`}>
+                  <span className="font-mono text-[9px] mr-2 opacity-60">{msg.ts}</span>{msg.text}
+                </span>
+              </motion.div>
+            );
+            const isAgent = msg.role === 'agent';
+            return (
+              <motion.div key={msg.id} initial={{ opacity: 0, x: isAgent ? 20 : -20 }} animate={{ opacity: 1, x: 0 }}
+                className={`flex flex-col gap-0.5 ${s.align}`}>
+                {!isAgent && <span className="text-[9px] text-[#64748B] px-1">🚚 Driver</span>}
+                {isAgent && msg.channel && <span className="text-[9px] text-[#4DD9AC]/70 px-1 flex items-center gap-1"><Bot size={9}/> via {msg.channel}</span>}
+                <div className={`max-w-[85%] px-3 py-2.5 rounded-xl text-xs leading-relaxed border ${s.bg} ${s.text} ${s.bubble}`}>
+                  {fillCode(msg.text)}
+                </div>
+                <div className={`text-[9px] text-[#4A5568] px-1 flex items-center gap-1 ${isAgent ? 'flex-row-reverse' : ''}`}>
+                  <span>{msg.ts}</span>
+                  {isAgent && <span className="text-[#34D399] flex items-center gap-0.5"><CheckCheck size={9}/> Sent</span>}
+                </div>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+
+        {/* Typing indicator */}
+        {typing && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-end gap-2">
+            <div className="bg-[#0D2B1E] border border-[#4DD9AC]/20 rounded-xl rounded-tl-sm px-4 py-3 flex items-center gap-1.5">
+              <Bot size={10} className="text-[#4DD9AC] mr-1" />
+              {[0,1,2].map(i => (
+                <motion.span key={i} animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 0.8, delay: i * 0.15 }}
+                  className="w-1.5 h-1.5 rounded-full bg-[#4DD9AC]" />
+              ))}
+            </div>
+            <span className="text-[10px] text-[#4DD9AC] mb-1">Agent composing…</span>
+          </motion.div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 🧩 HACKATHON UPGRADE 2 — Autonomous Resolution Playbook
+// Decision tree showing every step the AI agent took/will take
+// ─────────────────────────────────────────────────────────────────────────────
+interface PlaybookStep {
+  id: string; label: string; detail: string;
+  status: 'done'|'active'|'pending'|'skipped';
+  branch?: { condition: string; yes: string; no: string };
+  agentNote?: string;
+}
+
+function buildPlaybook(alert: EnrichedAlert): PlaybookStep[] {
+  const isCrit = alert.severity === 'CRITICAL';
+  const isHigh = alert.severity === 'HIGH';
+  return [
+    {
+      id:'p1', label:'Anomaly Detected', status:'done',
+      detail: alert.triggerText,
+      agentNote:'IoT sensor breach confirmed via BigQuery Streaming pipeline',
+    },
+    {
+      id:'p2', label:'Risk Score Computed', status:'done',
+      detail:`Gemini AI: risk_score=${isCrit?'0.92':isHigh?'0.71':'0.45'} · spoilage_window=${isCrit?'38':'120'}min`,
+      agentNote:'Multi-factor model: temp + humidity + route + cargo type',
+    },
+    {
+      id:'p3', label:'Playbook Selected', status:'done',
+      detail:`${isCrit?'CRITICAL_COLD_CHAIN':'HIGH_HUMIDITY'} playbook loaded`,
+      branch: { condition:'Severity ≥ CRITICAL?', yes:'Immediate escalation chain', no:'Standard WhatsApp SOP' },
+      agentNote:'LangGraph router selected based on product_type + risk_category',
+    },
+    {
+      id:'p4', label:'Driver Alerted', status:'done',
+      detail:`WhatsApp sent to ${alert.driver} · template: ${isCrit?'TEMP_EXCURSION':'HUMIDITY_SOP'}`,
+      agentNote:'Message queued via Meta Business API · read receipt tracked',
+    },
+    {
+      id:'p5', label:'ACK Timeout Watch', status: alert.acknowledged ? 'done' : alert.escalated ? 'skipped' : 'active',
+      detail: alert.acknowledged ? 'Driver acknowledged in 2m 10s ✓' : alert.escalated ? 'Timeout — no ACK after 10 min' : 'Watching for driver ACK (timeout: 10 min)…',
+      agentNote:'Countdown timer running. Triggers escalation if no response.',
+    },
+    {
+      id:'p6', label:'Auto-Escalation', status: alert.escalated ? 'done' : alert.acknowledged ? 'skipped' : 'pending',
+      detail: alert.escalated ? 'Escalated to Fleet Manager Sunil Mehta via WhatsApp + Call' : alert.acknowledged ? 'Skipped — driver responded in time' : 'Pending escalation to Fleet Manager',
+      agentNote:'Escalation matrix: CRITICAL → Fleet Manager (10 min) → Ops Lead (15 min)',
+    },
+    {
+      id:'p7', label:'Resolution & Audit Log', status: alert.resolved ? 'done' : 'pending',
+      detail: alert.resolved ? 'Case closed. Resolution logged to Supabase + Blockchain audit trail.' : 'Awaiting resolution…',
+      agentNote:'Immutable audit trail written to PostgreSQL + Sepolia testnet via oracle',
+    },
+  ];
+}
+
+const STEP_COLORS = { done:'#34D399', active:'#FBBF24', pending:'#4A5568', skipped:'#1E2530' };
+const STEP_TEXT   = { done:'#F1F5F9', active:'#FBBF24', pending:'#64748B', skipped:'#4A5568' };
+
+function PlaybookViewer({ alert }: { alert: EnrichedAlert }) {
+  const steps = buildPlaybook(alert);
+  const [expandedId, setExpandedId] = useState<string|null>(null);
+
+  return (
+    <div className="px-4 py-4 space-y-2">
+      <div className="flex items-center gap-2 mb-4">
+        <GitBranch size={14} className="text-[#A78BFA]" />
+        <span className="text-xs font-bold text-[#F1F5F9]">Autonomous Resolution Playbook</span>
+        <span className="ml-auto text-[10px] text-[#64748B] bg-[#111827] border border-[#1E2530] px-2 py-0.5 rounded-full">
+          {steps.filter(s => s.status === 'done').length}/{steps.length} steps complete
+        </span>
+      </div>
+
+      {steps.map((step, i) => {
+        const col = STEP_COLORS[step.status];
+        const txt = STEP_TEXT[step.status];
+        const isExp = expandedId === step.id;
+        return (
+          <div key={step.id} className="relative">
+            {/* Connector line */}
+            {i < steps.length - 1 && (
+              <div className="absolute left-[19px] top-[36px] w-px h-[calc(100%+8px)] z-0"
+                style={{ background: step.status === 'done' ? '#34D399' : '#1E2530' }} />
+            )}
+            <motion.button
+              onClick={() => setExpandedId(isExp ? null : step.id)}
+              whileHover={{ x: 2 }}
+              className="w-full text-left relative z-10"
+            >
+              <div className="flex items-center gap-3">
+                {/* Step circle */}
+                <div className="w-9 h-9 rounded-full border-2 shrink-0 flex items-center justify-center text-[11px] font-bold transition-all"
+                  style={{ borderColor: col, color: col, background: `${col}12` }}>
+                  {step.status === 'done'    ? '✓' :
+                   step.status === 'active'  ? <motion.div animate={{ scale: [1,1.2,1] }} transition={{ repeat: Infinity, duration: 1 }}>●</motion.div> :
+                   step.status === 'skipped' ? '—' : i + 1}
+                </div>
+                {/* Label */}
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-semibold" style={{ color: txt }}>{step.label}</div>
+                  <div className="text-[10px] text-[#4A5568] truncate">{step.detail}</div>
+                </div>
+                {/* Status badge */}
+                <div className="shrink-0 flex items-center gap-1">
+                  {step.status === 'active' && (
+                    <motion.div animate={{ opacity: [1,0.3,1] }} transition={{ repeat: Infinity, duration: 1 }}>
+                      <span className="text-[9px] font-bold text-[#FBBF24]">LIVE</span>
+                    </motion.div>
+                  )}
+                  <ChevronRight size={12} className="text-[#4A5568] transition-transform" style={{ transform: isExp ? 'rotate(90deg)' : '' }} />
+                </div>
+              </div>
+            </motion.button>
+
+            {/* Expanded detail */}
+            <AnimatePresence>
+              {isExp && (
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+                  className="ml-12 mt-1 mb-2 overflow-hidden">
+                  <div className="bg-[#111827] border border-[#1E2530] rounded-lg p-3 space-y-2">
+                    <p className="text-[11px] text-[#CBD5E1] leading-relaxed">{step.detail}</p>
+                    {step.branch && (
+                      <div className="flex items-center gap-2 text-[10px]">
+                        <GitBranch size={10} className="text-[#A78BFA] shrink-0" />
+                        <span className="text-[#A78BFA]">{step.branch.condition}</span>
+                        <span className="text-[#34D399]">YES → {step.branch.yes}</span>
+                        <span className="text-[#F87171]">NO → {step.branch.no}</span>
+                      </div>
+                    )}
+                    {step.agentNote && (
+                      <div className="flex items-start gap-1.5 bg-[#0A0D14] border border-[#1E2530] rounded-md p-2">
+                        <Bot size={10} className="text-[#4DD9AC] mt-0.5 shrink-0" />
+                        <span className="text-[10px] text-[#4DD9AC] leading-relaxed">{step.agentNote}</span>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -535,12 +901,11 @@ export function AlertsCenter() {
           thread: [{time: fmtTime(a.created_at), who:'outbound' as const, text: a.message_body ?? 'Alert sent', read: !!(a.delivered)}],
         } as EnrichedAlert;
       });
-      const combined = [...TEMPLATE_ALERTS as unknown as EnrichedAlert[], ...enriched.slice(0,3)];
-      setAlerts(combined);
-      if (!selected && combined.length > 0) setSelected(combined[0]);
+      // Only use real API alerts — no hardcoded data
+      setAlerts(enriched);
+      if (!selected && enriched.length > 0) setSelected(enriched[0]);
     }).catch(() => {
-      setAlerts(TEMPLATE_ALERTS as unknown as EnrichedAlert[]);
-      setSelected(TEMPLATE_ALERTS[0] as unknown as EnrichedAlert);
+      setAlerts([]);
     });
   },[]);
 
@@ -726,8 +1091,8 @@ export function AlertsCenter() {
       {toasts.filter(t=>t.type==='crit').map(t=>(
         <div key={t.id} className="w-full bg-[#EF4444] text-white text-sm font-bold px-5 py-3 flex items-center gap-3 shrink-0 z-50" style={{animation:'slideDown 0.3s ease'}}>
           <span className="w-2 h-2 rounded-full bg-white animate-pulse"/>
-          🚨 {t.msg}
-          <button onClick={()=>setToasts(x=>x.filter(y=>y.id!==t.id))} className="ml-auto text-white/60 hover:text-white">✕</button>
+          <ShieldAlert size={16}/> {t.msg}
+          <button onClick={()=>setToasts(x=>x.filter(y=>y.id!==t.id))} className="ml-auto text-white/60 hover:text-white"><X size={16}/></button>
         </div>
       ))}
 
@@ -743,21 +1108,26 @@ export function AlertsCenter() {
 
       {/* ── Top Nav ───────────────────────────────────────────────── */}
       <header className="shrink-0 bg-[#0A0D14] border-b border-[#1E2530] px-5 py-3 flex items-center gap-4 z-40">
-        <span className="text-[#4DD9AC] font-black text-xl tracking-tighter cursor-pointer" onClick={()=>navigate('/dashboard')}>AXON</span>
+        <span className="text-[#4DD9AC] font-black text-xl tracking-tighter cursor-pointer" onClick={()=>navigate('/dashboard')}>CARGOFY</span>
         <div className="h-5 w-px bg-[#1E2530]"/>
-        <span className="text-sm text-[#94A3B8]">🔔 Alerts Center</span>
-        <div className="flex items-center gap-2 text-xs">
-          {unresolvedCount > 0 && <span className="text-[#F87171] font-bold flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#EF4444] animate-pulse"/>🔴 {unresolvedCount} Unresolved</span>}
-          {pendingAckCount > 0 && <span className="text-[#FBBF24] font-bold">🟡 {pendingAckCount} Pending Ack</span>}
-          <span className="text-[#34D399]">✅ {resolvedToday} Resolved Today</span>
+        <span className="text-sm text-[#94A3B8] flex items-center gap-1.5"><Bell size={14}/> Alerts Center</span>
+        <div className="flex items-center gap-3 text-xs">
+          {unresolvedCount > 0 && <span className="text-[#F87171] font-bold flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#EF4444] animate-pulse"/> {unresolvedCount} Unresolved</span>}
+          {pendingAckCount > 0 && <span className="text-[#FBBF24] font-bold flex items-center gap-1.5"><AlertTriangle size={12}/> {pendingAckCount} Pending Ack</span>}
+          <span className="text-[#34D399] flex items-center gap-1.5"><CheckCircle size={12}/> {resolvedToday} Resolved Today</span>
         </div>
         <div className="flex-1"/>
-        <button onClick={()=>navigate('/dashboard')} className="text-[10px] border border-[#1E2530] text-[#64748B] hover:text-white px-3 py-1.5 rounded transition-colors">← Dashboard</button>
+        <button onClick={()=>navigate('/dashboard')} className="text-[10px] border border-[#1E2530] text-[#64748B] hover:text-white px-3 py-1.5 rounded flex items-center gap-1 transition-colors">Dashboard <ArrowRight size={12}/></button>
       </header>
 
       {/* ── Tabs ──────────────────────────────────────────────────── */}
       <div className="shrink-0 bg-[#0D1117] border-b border-[#1E2530] px-5 flex items-center gap-1">
-        {([['live','🔴 Live Alerts'],['history','📋 History'],['templates','📤 Templates'],['escalation','📡 Escalation Matrix']] as const).map(([k,l])=>(
+        {[
+          ['live', <div className="flex items-center gap-1.5"><Bell size={12}/> Live Alerts</div>],
+          ['history', <div className="flex items-center gap-1.5"><Clock size={12}/> History</div>],
+          ['templates', <div className="flex items-center gap-1.5"><FileText size={12}/> Templates</div>],
+          ['escalation', <div className="flex items-center gap-1.5"><LayoutDashboard size={12}/> Escalation Matrix</div>]
+        ].map(([k,l]: any)=>(
           <button key={k} onClick={()=>setMainTab(k)}
             className={`flex items-center gap-1.5 px-4 py-3 text-xs font-semibold border-b-2 transition-all ${mainTab===k?'border-[#4DD9AC] text-[#4DD9AC]':'border-transparent text-[#64748B] hover:text-[#94A3B8]'}`}>
             {l}
@@ -775,10 +1145,10 @@ export function AlertsCenter() {
           <div className="w-80 shrink-0 flex flex-col border-r border-[#1E2530] bg-[#0D1117] overflow-hidden">
             {/* Filter bar */}
             <div className="shrink-0 px-3 py-3 border-b border-[#1E2530] space-y-2">
-              <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 Search alerts…"
+              <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search alerts…"
                 className="w-full bg-[#111827] border border-[#1E2530] rounded-lg px-3 py-2 text-xs text-[#CBD5E1] placeholder-[#4A5568] focus:outline-none focus:border-[#4DD9AC]/40"/>
               <div className="flex gap-1 flex-wrap">
-                {([['all','All'],['unresolved','🔴'],['pending','⏳'],['resolved','✅'],['escalated','🚨']] as const).map(([f,l])=>(
+                {([['all','All'],['unresolved','Unresolved'],['pending','Pending'],['resolved','Resolved'],['escalated','Escalated']] as const).map(([f,l])=>(
                   <button key={f} onClick={()=>setLiveFilter(f)}
                     className={`flex-1 text-[10px] py-1 rounded border transition-colors ${liveFilter===f?'bg-[#4DD9AC]/10 border-[#4DD9AC]/30 text-[#4DD9AC]':'border-[#1E2530] text-[#64748B] hover:border-[#374151]'}`}>
                     {l}
@@ -803,7 +1173,7 @@ export function AlertsCenter() {
               <AlertDetail alert={selected} onAction={handleAction}/>
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-center px-8">
-                <span className="text-5xl mb-4">🔔</span>
+                <Bell size={48} className="text-[#1E2530] mb-4"/>
                 <div className="text-lg font-semibold text-[#CBD5E1] mb-2">Select an alert</div>
                 <div className="text-sm text-[#64748B]">Click any card to see communication thread, trigger details, and action buttons.</div>
               </div>
@@ -816,8 +1186,11 @@ export function AlertsCenter() {
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-6xl mx-auto px-5 py-5">
             <div className="flex items-center gap-3 mb-4">
-              <input value={histSearch} onChange={e=>setHistSearch(e.target.value)} placeholder="🔍 Search history…"
-                className="w-64 bg-[#111827] border border-[#1E2530] rounded-lg px-3 py-2 text-xs text-[#CBD5E1] placeholder-[#4A5568] focus:outline-none focus:border-[#4DD9AC]/40"/>
+              <div className="relative">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#4A5568]"/>
+                <input value={histSearch} onChange={e=>setHistSearch(e.target.value)} placeholder="Search history…"
+                  className="w-64 bg-[#111827] border border-[#1E2530] rounded-lg pl-9 pr-3 py-2 text-xs text-[#CBD5E1] placeholder-[#4A5568] focus:outline-none focus:border-[#4DD9AC]/40"/>
+              </div>
               <button onClick={()=>setSortDir(d=>d==='asc'?'desc':'asc')}
                 className="text-xs border border-[#1E2530] text-[#64748B] px-3 py-2 rounded hover:text-white transition-colors">
                 Time {sortDir==='desc'?'↓':'↑'}

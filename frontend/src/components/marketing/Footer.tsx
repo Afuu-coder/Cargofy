@@ -46,7 +46,7 @@ export const MarketingFooter: React.FC = () => {
             <div className="col-span-2 md:col-span-4 lg:col-span-2">
               <Link to="/" style={{ textDecoration: 'none' }}>
                 <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 800, fontSize: '1.375rem', color: '#0F6E56', letterSpacing: '-0.02em' }}>
-                  ⬡ Axon
+                  ⬡ Cargofy
                 </span>
               </Link>
               <p style={{ fontSize: '0.875rem', color: '#6B7280', lineHeight: 1.65, maxWidth: '18rem', margin: '0.75rem 0 1.25rem' }}>
@@ -119,7 +119,7 @@ export const MarketingFooter: React.FC = () => {
             display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '1rem',
           }}>
             <p style={{ fontSize: '0.75rem', color: '#9CA3AF' }}>
-              © 2026 Axon Supply Chain AI. Made with ❄️ in India.
+              © 2026 Cargofy Supply Chain AI. Made with ❄️ in India.
             </p>
             <div style={{ display: 'flex', gap: '1.5rem' }}>
               {[{ label: 'Privacy Policy', to: '/privacy' }, { label: 'Terms of Service', to: '/terms' }].map(({ label, to }) => (
@@ -134,7 +134,7 @@ export const MarketingFooter: React.FC = () => {
 
       {/* Floating WhatsApp Button */}
       <a
-        href="https://wa.me/919999999999?text=Hi%20Axon%2C%20I%20want%20to%20book%20a%20demo"
+        href="https://wa.me/919999999999?text=Hi%20Cargofy%2C%20I%20want%20to%20book%20a%20demo"
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Chat on WhatsApp"

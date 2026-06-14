@@ -4,7 +4,6 @@ pydantic>=2.10.3
 pydantic-settings>=2.7.0
 python-dotenv>=1.0.1
 httpx>=0.28.1
-psycopg2-binary>=2.9.10
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 python-multipart>=0.0.20
@@ -12,18 +11,29 @@ sqlalchemy>=2.0.36
 alembic>=1.14.0
 slowapi>=0.1.9
 
-# ── Google Cloud / AI ────────────────────────────────────────────────────────
+# ── PostgreSQL / Supabase ────────────────────────────────────────────────────
+psycopg2-binary>=2.9.10
+supabase>=2.4.0
+
+# ── Google AI / Gemini / Vertex AI ──────────────────────────────────────────
 google-generativeai>=0.8.4
 google-cloud-aiplatform>=1.74.0
-google-adk>=1.2.0
 
-# ── Firebase ─────────────────────────────────────────────────────────────────
-firebase-admin>=6.6.0
-google-cloud-firestore>=2.19.0
+# ── LangGraph + LangChain (Autonomous AI Agent) ─────────────────────────────
+langgraph>=0.2.0
+langchain>=0.3.0
+langchain-google-genai>=2.0.0
+langchain-core>=0.3.0
 
-# ── BigQuery + Pub/Sub ───────────────────────────────────────────────────────
-google-cloud-bigquery>=3.25.0
-google-cloud-pubsub>=2.27.0
+# ── Google Maps (Routing + Cold Storage Finder) ─────────────────────────────
+googlemaps>=4.10.0
 
-# ── Messaging ────────────────────────────────────────────────────────────────
-twilio>=9.4.0
+# ── Blockchain — Ethereum Sepolia Testnet ───────────────────────────────────
+web3>=7.0.0
+
+# ── WebSockets (Real-time dashboard) ────────────────────────────────────────
+websockets>=13.0
+
+
+# ── Messaging ───────────────────────────────────────────────────────────────
+# Using CallMeBot (free) — no Twilio needed

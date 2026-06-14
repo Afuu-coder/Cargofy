@@ -27,7 +27,7 @@ from app.services.maps_service import find_nearby_facilities
 from app.services.risk_engine import compute_risk
 from app.services.risk_compute_service import compute_risk_full, push_risk_to_rtdb
 from app.services.weather_service import get_ambient_temp
-from app.services import firebase_rtdb
+from app.services.weather_service import get_ambient_temp
 from app.services.pubsub_service import publish_telemetry
 from app.services.telemetry_pipeline import process_telemetry
 from app.services.whatsapp_service import build_alert_message, send_whatsapp_alert
@@ -228,28 +228,7 @@ async def post_sensor_reading(
     db.commit()
     db.refresh(reading)
 
-    # ── Push to Firebase RTDB (real-time frontend update) ─────────────────────
-    firebase_rtdb.push_shipment_state(shipment.shipment_code, {
-        "stage": "IN_TRANSIT",
-        "risk_score": int(risk_score * 100),
-        "risk_category": risk_category,
-        "temperature": float(payload.temperature),
-        "humidity": float(payload.humidity) if payload.humidity else None,
-        "spoilage_window_min": time_to_spoil,
-        "product_type": shipment.product_type,
-        "origin": shipment.origin,
-        "destination": shipment.destination,
-        "vehicle_number": shipment.vehicle_number,
-    })
-
-    # Push per-shipment risk breakdown to /risk_scores
-    firebase_rtdb.push_risk_score(str(shipment.id), {
-        "score": risk_score,
-        "category": risk_category,
-        "factors": risk_result["factors"],
-        "spoil_min": time_to_spoil,
-        "explanation_ops": explanation_text[:200] if explanation_text else None,
-    })
+    # (Firebase RTDB push has been fully migrated to Supabase Realtime via PostgreSQL triggers)
 
     # Publish to Pub/Sub (parallel event-driven pipeline)
     publish_telemetry({
@@ -262,15 +241,6 @@ async def post_sensor_reading(
         "risk_score": risk_score,
         "risk_category": risk_category,
     })
-
-    # Push alert to RTDB if one was created
-    if risk_category in _ENRICH_CATEGORIES:
-        firebase_rtdb.push_alert(str(risk_event.id), {
-            "shipment_id": shipment.shipment_code,
-            "severity": risk_category,
-            "message": f"Temp {payload.temperature}°C — {risk_category} risk — ~{time_to_spoil}min",
-            "ack_status": "UNREAD",
-        })
 
     # ── Telemetry Pipeline (Dataflow-equivalent) ──────────────────────────────
     # Run map-matching, route progress, ETA, stage detection, Firestore history

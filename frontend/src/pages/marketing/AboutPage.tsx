@@ -52,7 +52,7 @@ export const AboutPage: React.FC = () => {
             <span style={{ color: COLORS.teal }}>Cold Chain Intelligence Layer</span>.
           </h1>
           <p className="mt-6 text-xl md:text-2xl text-[#94A3B8] mx-auto leading-relaxed max-w-3xl">
-            Every year, ₹92,000 crore worth of food is wasted in India's supply chain. We think most of it is preventable. Axon exists to prove it.
+            Every year, ₹92,000 crore worth of food is wasted in India's supply chain. We think most of it is preventable. Cargofy exists to prove it.
           </p>
         </div>
       </section>
@@ -81,7 +81,7 @@ export const AboutPage: React.FC = () => {
             </p>
             
             <p className="text-white text-xl font-bold mt-8">
-              We built Axon because cold chain logistics needed its own operating system — one that understood temperature, spoilage, shelf life, and perishability as first-class concepts.
+              We built Cargofy because cold chain logistics needed its own operating system — one that understood temperature, spoilage, shelf life, and perishability as first-class concepts.
             </p>
 
             <p className="text-[#4DD9AC] font-mono text-lg mt-8 uppercase tracking-widest">
@@ -201,11 +201,11 @@ export const AboutPage: React.FC = () => {
               <div className="space-y-6 mb-8">
                 <div className="border border-[#1E293B] rounded-lg p-6 bg-[#111622]">
                   <div className="text-[#4DD9AC] text-xs font-bold uppercase mb-2">TechCrunch India</div>
-                  <p className="text-white italic">"Axon is solving cold chain loss with unprecedented precision..."</p>
+                  <p className="text-white italic">"Cargofy is solving cold chain loss with unprecedented precision..."</p>
                 </div>
                 <div className="border border-[#1E293B] rounded-lg p-6 bg-[#111622]">
                   <div className="text-[#4DD9AC] text-xs font-bold uppercase mb-2">YourStory</div>
-                  <p className="text-white italic">"The Locus for perishables. How Axon is rethinking logistics..."</p>
+                  <p className="text-white italic">"The Locus for perishables. How Cargofy is rethinking logistics..."</p>
                 </div>
                 <div className="border border-[#1E293B] rounded-lg p-6 bg-[#111622]">
                   <div className="text-[#4DD9AC] text-xs font-bold uppercase mb-2">Logistics Insider</div>
@@ -257,7 +257,7 @@ export const AboutPage: React.FC = () => {
       <section className="py-32 border-t border-[#1E293B] bg-[#080B12] text-center">
         <div className="max-w-3xl mx-auto px-4">
           <h2 style={{ fontFamily: FONTS.display }} className="text-4xl font-bold text-white mb-8">
-            Ready to see Axon in your cold chain?
+            Ready to see Cargofy in your cold chain?
           </h2>
           <div className="flex justify-center">
             <Link to="/signup" style={{ backgroundColor: COLORS.teal }} className="text-[#080B12] px-8 py-4 rounded-md font-bold text-lg hover:opacity-90 transition-all shadow-[0_0_20px_rgba(77,217,172,0.3)]">
@@ -280,7 +280,7 @@ const NavBar = ({ scrolled, mobileMenuOpen, setMobileMenuOpen }: any) => (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="flex justify-between items-center h-20">
         <div className="flex-shrink-0 flex items-center">
-          <Link to="/" style={{ fontFamily: 'monospace' }} className="text-2xl font-bold tracking-widest text-white hover:text-[#4DD9AC] transition-colors">AXON</Link>
+          <Link to="/" style={{ fontFamily: 'monospace' }} className="text-2xl font-bold tracking-widest text-white hover:text-[#4DD9AC] transition-colors">CARGOFY</Link>
         </div>
         <div className="hidden md:flex items-center space-x-8">
           <Link to="/product" className="text-[#94A3B8] hover:text-white transition-colors text-sm font-medium">Platform</Link>
@@ -308,7 +308,7 @@ const Footer = () => (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="grid grid-cols-2 md:grid-cols-5 gap-12 mb-16">
         <div className="col-span-2 md:col-span-1">
-          <div style={{ fontFamily: 'monospace' }} className="text-2xl font-bold tracking-widest text-white mb-6">AXON</div>
+          <div style={{ fontFamily: 'monospace' }} className="text-2xl font-bold tracking-widest text-white mb-6">CARGOFY</div>
         </div>
         <div>
           <h4 className="text-white font-bold mb-6 uppercase tracking-wider text-sm">Platform</h4>
@@ -340,7 +340,7 @@ const Footer = () => (
         </div>
       </div>
       <div className="pt-8 border-t border-[#1E293B] flex flex-col md:flex-row justify-between items-center gap-4">
-        <p className="text-[#64748B] text-sm">© 2024 Axon Smart Supply Chain. Built in India 🇮🇳.</p>
+        <p className="text-[#64748B] text-sm">© 2024 Cargofy Smart Supply Chain. Built in India.</p>
       </div>
     </div>
   </footer>

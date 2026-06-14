@@ -37,7 +37,6 @@ from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.models.models import Alert, RiskEvent, Shipment, SensorReading
-from app.services import firebase_rtdb
 from app.services.pubsub_service import publish_network_event
 
 logger = logging.getLogger(__name__)
@@ -62,7 +61,7 @@ def _shipment_or_404(shipment_id: str, db: Session) -> Shipment:
 
 def _enrich_live(shipment_code: str) -> dict:
     """Pull latest live telemetry from Firebase RTDB."""
-    live = firebase_rtdb.get_shipment_state(shipment_code) or {}
+    live = {}
     if not live:
         # Synthetic live data for demo
         live = {
@@ -223,7 +222,7 @@ def bulk_reassign(body: BulkReassignRequest, db: Session = Depends(get_db)):
             s = _shipment_or_404(sid, db)
             s.vehicle_number = body.new_vehicle_id
             db.commit()
-            firebase_rtdb.push_shipment_state(s.shipment_code, {"vehicle_number": body.new_vehicle_id})
+            pass
             results.append({"id": sid, "ok": True})
         except HTTPException:
             results.append({"id": sid, "ok": False, "error": "not_found"})
@@ -550,12 +549,7 @@ def submit_pod(shipment_id: str, body: PODRequest, db: Session = Depends(get_db)
     s.status = "completed"
     db.commit()
 
-    firebase_rtdb.push_shipment_state(s.shipment_code, {
-        "stage": "DELIVERED",
-        "pod_photo_url": body.photo_url,
-        "delivered_at": _now_iso(),
-        "delivered_temp": body.delivered_temp,
-    })
+    pass
     publish_network_event("POD_SUBMITTED", {
         "shipment_id": str(s.id),
         "shipment_code": s.shipment_code,
@@ -567,13 +561,7 @@ def submit_pod(shipment_id: str, body: PODRequest, db: Session = Depends(get_db)
 def add_note(shipment_id: str, body: NoteRequest, db: Session = Depends(get_db)):
     s = _shipment_or_404(shipment_id, db)
     # Store in RTDB (quick path); Firestore write in prod
-    firebase_rtdb.push_shipment_state(s.shipment_code, {
-        f"note_{int(datetime.now().timestamp())}": {
-            "text": body.note,
-            "type": body.note_type,
-            "created_at": _now_iso(),
-        }
-    })
+    pass
     return {"ok": True, "shipment_code": s.shipment_code, "note": body.note}
 
 
@@ -589,11 +577,7 @@ def update_stage(shipment_id: str, body: StageRequest, db: Session = Depends(get
     s.status = db_status
     db.commit()
 
-    firebase_rtdb.push_shipment_state(s.shipment_code, {
-        "stage": body.new_stage.upper(),
-        "stage_note": body.note,
-        "stage_updated_at": _now_iso(),
-    })
+    pass
     publish_network_event("STAGE_UPDATED", {
         "shipment_id": str(s.id),
         "shipment_code": s.shipment_code,

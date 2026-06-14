@@ -62,6 +62,7 @@ class ShipmentResponse(BaseModel):
     estimated_loss_inr: Optional[float]    = None
     created_at:         Optional[datetime] = None
     current_risk:       Optional[RiskSummary] = None
+    current_location:   Optional[Dict[str, float]] = None
 
     class Config:
         from_attributes = True

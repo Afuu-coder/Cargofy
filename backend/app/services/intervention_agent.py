@@ -36,12 +36,7 @@ def _haversine(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
 
 
 # ── Firestore helper ──────────────────────────────────────────────────────────
-def _firestore():
-    try:
-        from google.cloud import firestore
-        return firestore.Client(project=settings.VERTEX_AI_PROJECT)
-    except Exception:
-        return None
+
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -303,7 +298,6 @@ async def _rule_based_intervention(
     Rule-based fallback that implements the blueprint decision tree exactly.
     Writes all results to Firestore + Firebase RTDB.
     """
-    from app.services import firebase_rtdb
     from app.services.pubsub_service import publish_network_event
     from app.services.escalation_service import schedule_escalation
 
@@ -370,18 +364,7 @@ async def _rule_based_intervention(
         except Exception as e:
             logger.warning("Firestore intervention write failed: %s", e)
 
-    # ── Write to Firebase RTDB /ai_actions ────────────────────────────────────
-    firebase_rtdb.push_ai_action(shipment_code, {
-        "action_id":    action_id,
-        "decision":     decision,
-        "risk_score":   risk_score,
-        "risk_category": risk_category,
-        "actions_taken": actions_taken,
-        "cold_hub":     cold_hub,
-        "reroute":      reroute,
-        "ack_status":   "PENDING",
-        "timestamp":    int(time.time() * 1000),
-    })
+    # Firebase RTDB push removed
 
     # ── Pub/Sub intervention-taken ─────────────────────────────────────────────
     publish_network_event("INTERVENTION_TAKEN", {

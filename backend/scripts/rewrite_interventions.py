@@ -1,4 +1,7 @@
-"""
+import sys
+import os
+
+interventions_content = """\"\"\"
 Axon — Risk & Interventions Router (axon-risk-svc + axon-intervention-svc)
 All blueprint REST endpoints for the Risk & Interventions screen.
 
@@ -13,7 +16,7 @@ Endpoints:
   POST /api/v1/interventions/reroute-impact         → Calculate reroute risk reduction
   GET  /api/v1/interventions/fleet/dashboard        → All active interventions (fleet view)
   POST /api/v1/interventions/trigger-agent          → Manually trigger ADK InterventionAgent
-"""
+\"\"\"
 from __future__ import annotations
 
 import logging
@@ -495,3 +498,9 @@ async def trigger_agent(
         "risk_category": result["risk_category"],
         "agent_queued":  True,
     }
+"""
+
+with open('c:/Users/afjal/Desktop/Cargofy/Axon/backend/app/routers/interventions.py', 'w', encoding='utf-8') as f:
+    f.write(interventions_content)
+
+print("Rewrote interventions.py successfully.")

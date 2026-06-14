@@ -156,6 +156,14 @@ class Alert(Base):
     created_at      = Column(DateTime, server_default=func.now())  # alias kept for API compat
     delivered       = Column(Boolean)
     read_at         = Column(DateTime)
+    
+    ack_status      = Column(String(50), default="SENT")
+    escalated_to    = Column(JSON, default=list)
+    thread_events   = Column(JSON, default=list)
+    fp_marked_by    = Column(String(100))
+    fp_marked_at    = Column(DateTime)
+    fp_note         = Column(Text)
+    whatsapp_message_id = Column(String(100))
 
     shipment   = relationship("Shipment", back_populates="alerts")
     risk_event = relationship("RiskEvent", back_populates="alerts")
@@ -183,3 +191,74 @@ class SavingsLog(Base):
     __table_args__ = (
         Index("idx_savings_user", "user_id"),
     )
+
+# ── AI Actions ────────────────────────────────────────────────────────────────
+
+class AIActionModel(Base):
+    __tablename__ = "ai_actions"
+
+    id            = Column(String(50), primary_key=True)
+    shipment_id   = Column(String(50))
+    message       = Column(Text)
+    confidence    = Column(Numeric(5, 4))
+    action_type   = Column(String(50))
+    generated_at  = Column(BigInteger)
+
+    __table_args__ = (
+        Index("idx_aiactions_generated", "generated_at"),
+    )
+
+
+
+# ── Drivers ───────────────────────────────────────────────────────────────────
+
+class Driver(Base):
+    __tablename__ = "drivers"
+
+    id = Column(String(50), primary_key=True)
+    org_id = Column(String(50), default="org_001")
+    name = Column(String(100))
+    phone = Column(String(20))
+    whatsapp_verified = Column(Boolean, default=False)
+    fcm_token = Column(String(200))
+    status = Column(String(20), default="AVAILABLE")
+    region = Column(String(50))
+    product_certifications = Column(JSON, default=list)
+    active_trip_id = Column(String(50))
+    ack_rate = Column(Numeric(5, 2), default=0)
+    avg_delay_minutes = Column(Numeric(5, 2), default=0)
+    excursion_count_30d = Column(Integer, default=0)
+    total_trips = Column(Integer, default=0)
+    performance_score = Column(Numeric(5, 2), default=0)
+    joined_at = Column(String(50))
+    last_seen_at = Column(String(50))
+
+
+# ── Vehicles ──────────────────────────────────────────────────────────────────
+
+class Vehicle(Base):
+    __tablename__ = "vehicles"
+
+    id = Column(String(50), primary_key=True)
+    org_id = Column(String(50), default="org_001")
+    plate = Column(String(50))
+    type = Column(String(50))
+    manufacturer = Column(String(100))
+    model = Column(String(100))
+    capacity_kg = Column(Integer)
+    capacity_liters = Column(Integer)
+    reefer_system = Column(String(100))
+    reefer_temp_range_min = Column(Numeric(5, 2))
+    reefer_temp_range_max = Column(Numeric(5, 2))
+    reefer_health_score = Column(Numeric(5, 2), default=100)
+    paired_sensor_id = Column(String(100))
+    sensor_battery_pct = Column(Integer)
+    sensor_last_sync = Column(String(50))
+    status = Column(String(20), default="AVAILABLE")
+    active_trip_id = Column(String(50))
+    last_service_date = Column(String(50))
+    next_service_date = Column(String(50))
+    service_interval_days = Column(Integer)
+    avg_temp_stability = Column(Numeric(5, 2), default=0)
+    total_trips = Column(Integer, default=0)
+    created_at = Column(String(50))

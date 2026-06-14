@@ -24,7 +24,6 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.db.session import get_db
 from app.models.models import Alert
-from app.services import firebase_rtdb
 from app.services.pubsub_service import publish_alert_event
 
 logger = logging.getLogger(__name__)
@@ -125,8 +124,7 @@ def _handle_inbound_message(msg: Dict, value: Dict, db: Session):
     alert.ack_at = datetime.now(timezone.utc)
     db.commit()
 
-    firebase_rtdb.ack_alert_live(str(alert.id))
-
+    pass
     publish_alert_event(
         alert_id=str(alert.id),
         shipment_id=str(alert.shipment_id),

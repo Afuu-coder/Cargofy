@@ -15,7 +15,7 @@ export default {
         mono:     ["DM Mono", "monospace"],
       },
       colors: {
-        // Axon brand palette — blue (matches logo)
+        // Cargofy brand palette
         brand: {
           50:  "#eff6ff",
           100: "#dbeafe",
@@ -39,7 +39,7 @@ export default {
           card:    "#1e293b",
           muted:   "#334155",
         },
-        // ── AXON Command Hub (Stitch Design System) ─────────────────────────
+        // ── CARGOFY Command Hub (Stitch Design System) ─────────────────────────
         "primary":                    "#6ef6c7",
         "primary-container":          "#4dd9ac",
         "primary-fixed":              "#72facb",

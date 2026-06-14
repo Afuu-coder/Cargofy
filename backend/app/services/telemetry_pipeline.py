@@ -21,7 +21,6 @@ from typing import Any, Dict, List, Optional
 
 import httpx
 from app.core.config import settings
-from app.services import firebase_rtdb
 from app.services.eta_service import predict_eta
 from app.services.pubsub_service import publish_network_event
 
@@ -298,36 +297,7 @@ async def process_telemetry(
         "silence_alert":   False,
     }
 
-    # 6. Push to Firebase RTDB /live_tracking/{code}
-    firebase_rtdb.push_live_tracking(shipment_code, {
-        "lat":               road_lat,
-        "lng":               road_lng,
-        "temperature":       temperature,
-        "humidity":          humidity,
-        "speed_kmh":         speed_kmh,
-        "progress_pct":      progress_pct,
-        "remaining_km":      remaining_km,
-        "eta_min":           eta_min,
-        "stage":             new_stage,
-        "risk_score":        int(risk_score * 100) if risk_score <= 1 else int(risk_score),
-        "risk_category":     risk_category,
-        "spoilage_window_min": spoilage_window,
-        "door_status":       door_status,
-        "battery_pct":       battery_pct,
-        "last_sync_ts":      int(time.time() * 1000),
-        "silence_alert":     False,
-    })
-
-    # Also update /active_shipments for AlertsCenter
-    firebase_rtdb.push_shipment_state(shipment_code, {
-        "stage":             new_stage,
-        "risk_score":        int(risk_score * 100) if risk_score <= 1 else int(risk_score),
-        "risk_category":     risk_category,
-        "temperature":       temperature,
-        "humidity":          humidity,
-        "spoilage_window_min": spoilage_window,
-        "eta_min":           eta_min,
-    })
+    # Firebase RTDB pushes removed
 
     # 7. Firestore history (best-effort, don't await to keep response fast)
     import asyncio
@@ -355,18 +325,7 @@ async def process_telemetry(
             "timestamp":      ts,
         })
 
-        # Push to /network_events for AlertsCenter
-        try:
-            ref = firebase_rtdb._get_ref(f"/network_events/stage_{shipment_code}_{int(time.time())}")
-            if ref:
-                ref.set({
-                    "event_type":    "STAGE_CHANGED",
-                    "shipment_code": shipment_code,
-                    "message":       f"{shipment_code}: {current_stage} → {new_stage}. {note}",
-                    "timestamp":     ts,
-                })
-        except Exception:
-            pass
+        # RTDB event push removed
 
     return enriched
 
@@ -401,8 +360,7 @@ async def check_sensor_silence(
             })
             # Mark silence alert in RTDB
             code = ship.get("shipment_code", "")
-            if code:
-                firebase_rtdb.push_live_tracking(code, {"silence_alert": True})
+            # Firebase push removed
             # Pub/Sub sensor-alerts
             publish_network_event("SENSOR_SILENCE", {
                 "shipment_code":   ship.get("shipment_code", ""),

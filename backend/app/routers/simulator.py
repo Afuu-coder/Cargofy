@@ -183,7 +183,7 @@ async def start_playback_endpoint(body: PlaybackRequest, db: Session = Depends(g
 @router.post("/stop-playback/{shipment_code}", summary="Stop active playback")
 async def stop_playback(shipment_code: str, db: Session = Depends(get_db)):
     ship = _get_ship(shipment_code, db)
-    from app.services.firebase_rtdb import _get_ref
+    
     ref = _get_ref(f"/simulator_states/{ship.shipment_code}")
     if ref:
         try:

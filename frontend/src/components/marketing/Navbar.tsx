@@ -26,13 +26,13 @@ const NAV = [
     ],
   },
   {
-    label: 'Why Axon',
-    to: '/why-axon',
+    label: 'Why Cargofy',
+    to: '/why-cargofy',
     children: [
-      { label: 'Axon vs FarEye',       to: '/why-axon/vs-fareye',        desc: 'Enterprise comparison' },
-      { label: 'Axon vs Locus',        to: '/why-axon/vs-locus',         desc: 'Route platform comparison' },
-      { label: 'Axon vs Basic GPS',    to: '/why-axon/vs-basic-gps',     desc: 'Why GPS alone fails' },
-      { label: 'Open Innovation',      to: '/why-axon/open-innovation',  desc: 'Open API & architecture' },
+      { label: 'Cargofy vs FarEye',       to: '/why-cargofy/vs-fareye',        desc: 'Enterprise comparison' },
+      { label: 'Cargofy vs Locus',        to: '/why-cargofy/vs-locus',         desc: 'Route platform comparison' },
+      { label: 'Cargofy vs Basic GPS',    to: '/why-cargofy/vs-basic-gps',     desc: 'Why GPS alone fails' },
+      { label: 'Open Innovation',      to: '/why-cargofy/open-innovation',  desc: 'Open API & architecture' },
     ],
   },
   { label: 'Pricing', to: '/pricing' },
@@ -87,7 +87,7 @@ export const MarketingNavbar: React.FC = () => {
           {/* Logo */}
           <Link to="/" style={{ display: 'flex', alignItems: 'center' }}>
             <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 800, fontSize: '1.375rem', color: '#0F6E56', letterSpacing: '-0.02em' }}>
-              ⬡ Axon
+              ⬡ Cargofy
             </span>
           </Link>
 

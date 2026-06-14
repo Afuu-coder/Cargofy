@@ -1,9 +1,76 @@
+import sys
+import os
+
+with open('c:/Users/afjal/Desktop/Cargofy/Axon/backend/app/models/models.py', 'r', encoding='utf-8') as f:
+    models_content = f.read()
+
+if "class Driver(Base):" not in models_content:
+    models_content += """
+
+# ── Drivers ───────────────────────────────────────────────────────────────────
+
+class Driver(Base):
+    __tablename__ = "drivers"
+
+    id = Column(String(50), primary_key=True)
+    org_id = Column(String(50), default="org_001")
+    name = Column(String(100))
+    phone = Column(String(20))
+    whatsapp_verified = Column(Boolean, default=False)
+    fcm_token = Column(String(200))
+    status = Column(String(20), default="AVAILABLE")
+    region = Column(String(50))
+    product_certifications = Column(JSON, default=list)
+    active_trip_id = Column(String(50))
+    ack_rate = Column(Numeric(5, 2), default=0)
+    avg_delay_minutes = Column(Numeric(5, 2), default=0)
+    excursion_count_30d = Column(Integer, default=0)
+    total_trips = Column(Integer, default=0)
+    performance_score = Column(Numeric(5, 2), default=0)
+    joined_at = Column(String(50))
+    last_seen_at = Column(String(50))
+
+
+# ── Vehicles ──────────────────────────────────────────────────────────────────
+
+class Vehicle(Base):
+    __tablename__ = "vehicles"
+
+    id = Column(String(50), primary_key=True)
+    org_id = Column(String(50), default="org_001")
+    plate = Column(String(50))
+    type = Column(String(50))
+    manufacturer = Column(String(100))
+    model = Column(String(100))
+    capacity_kg = Column(Integer)
+    capacity_liters = Column(Integer)
+    reefer_system = Column(String(100))
+    reefer_temp_range_min = Column(Numeric(5, 2))
+    reefer_temp_range_max = Column(Numeric(5, 2))
+    reefer_health_score = Column(Numeric(5, 2), default=100)
+    paired_sensor_id = Column(String(100))
+    sensor_battery_pct = Column(Integer)
+    sensor_last_sync = Column(String(50))
+    status = Column(String(20), default="AVAILABLE")
+    active_trip_id = Column(String(50))
+    last_service_date = Column(String(50))
+    next_service_date = Column(String(50))
+    service_interval_days = Column(Integer)
+    avg_temp_stability = Column(Numeric(5, 2), default=0)
+    total_trips = Column(Integer, default=0)
+    created_at = Column(String(50))
 """
+
+with open('c:/Users/afjal/Desktop/Cargofy/Axon/backend/app/models/models.py', 'w', encoding='utf-8') as f:
+    f.write(models_content)
+
+
+fleet_py_content = """\"\"\"
 Axon — Fleet & Drivers Router (Blueprint: Part A)
 
 Prefix: /api/v1/fleet
 Backends: PostgreSQL (Supabase)
-"""
+\"\"\"
 from __future__ import annotations
 
 import logging
@@ -290,9 +357,9 @@ async def get_reefer_health(vehicle_id: str, db: Session = Depends(get_db)):
             f"Total trips: {vehicle.total_trips or 0}, "
             f"Avg temp stability: {vehicle.avg_temp_stability or 1.0}°C, "
             f"Last service: {vehicle.last_service_date or 'unknown'}. "
-            f"Output ONLY JSON: {{\"health_score_pct\": N, \"days_to_service_recommended\": N, "
-            f"\"degradation_trend\": \"STABLE|DECLINING|CRITICAL\", "
-            f"\"recommendation\": \"brief action\"}}"
+            f"Output ONLY JSON: {{\\"health_score_pct\\": N, \\"days_to_service_recommended\\": N, "
+            f"\\"degradation_trend\\": \\"STABLE|DECLINING|CRITICAL\\", "
+            f"\\"recommendation\\": \\"brief action\\"}}"
         )
         resp = model.generate_content(prompt)
         text = resp.text.strip()
@@ -397,3 +464,7 @@ async def fleet_health_summary(db: Session = Depends(get_db)):
             "low_reefer":     len(low_reefer),
         },
     }
+"""
+
+with open('c:/Users/afjal/Desktop/Cargofy/Axon/backend/app/routers/fleet.py', 'w', encoding='utf-8') as f:
+    f.write(fleet_py_content)

@@ -44,7 +44,7 @@ const CASE_STUDIES = [
       alert: "4.2 min",
       comp: "91%"
     },
-    longQuote: "Before Axon, we had to rely on drivers calling us when something felt wrong. Now the system tells us what's wrong, why it's wrong, and what to do — before the driver even notices."
+    longQuote: "Before Cargofy, we had to rely on drivers calling us when something felt wrong. Now the system tells us what's wrong, why it's wrong, and what to do — before the driver even notices."
   },
   {
     id: 'coastal-catch',
@@ -53,7 +53,7 @@ const CASE_STUDIES = [
     industry: 'Seafood',
     size: 'Mid-Market',
     region: 'Kochi & Chennai',
-    quote: "Zero rejections at the port since we switched to Axon.",
+    quote: "Zero rejections at the port since we switched to Cargofy.",
     author: "Head of Logistics",
     featured: false,
     challenge: "High rejection rates at export hubs due to undocumented temperature and humidity fluctuations during transit from harbour to processing facilities.",
@@ -67,7 +67,7 @@ const CASE_STUDIES = [
       alert: "2.1 min",
       comp: "100%"
     },
-    longQuote: "The export documentation used to take us a full day to compile. Now, Axon generates the exact compliance certificate the buyers want before the truck even backs into the loading bay."
+    longQuote: "The export documentation used to take us a full day to compile. Now, Cargofy generates the exact compliance certificate the buyers want before the truck even backs into the loading bay."
   },
   {
     id: 'bharat-pharma',
@@ -76,7 +76,7 @@ const CASE_STUDIES = [
     industry: 'Pharma',
     size: 'Enterprise',
     region: 'Pan-India',
-    quote: "A 1-degree excursion is unacceptable. Axon ensures we never have to guess.",
+    quote: "A 1-degree excursion is unacceptable. Cargofy ensures we never have to guess.",
     author: "Director of Quality Assurance",
     featured: false,
     challenge: "Transporting high-value biologics required absolute 2–8°C adherence. Their previous system relied on USB loggers checked at the destination, leading to quarantined cargo that could have been saved with an early intervention.",
@@ -91,7 +91,7 @@ const CASE_STUDIES = [
       alert: "45 sec",
       comp: "100%"
     },
-    longQuote: "We had a reefer failure near Pune with ₹45 Lakh worth of vaccines. Axon caught it in 45 seconds, escalated it, and successfully routed the driver to a partner cold hub just 8km away. It paid for itself in one day."
+    longQuote: "We had a reefer failure near Pune with ₹45 Lakh worth of vaccines. Cargofy caught it in 45 seconds, escalated it, and successfully routed the driver to a partner cold hub just 8km away. It paid for itself in one day."
   }
 ];
 
@@ -149,7 +149,7 @@ export const CustomersPage: React.FC = () => {
             </div>
 
             <div>
-              <h2 className="text-sm font-bold text-[#4DD9AC] uppercase tracking-widest mb-4">How They Use Axon</h2>
+              <h2 className="text-sm font-bold text-[#4DD9AC] uppercase tracking-widest mb-4">How They Use Cargofy</h2>
               <ul className="space-y-4">
                 {study.solution.map((s, i) => (
                   <li key={i} className="flex items-start">
@@ -231,7 +231,7 @@ export const CustomersPage: React.FC = () => {
             Results That Speak for <span style={{ color: COLORS.teal }}>Themselves</span>.
           </h1>
           <p className="mt-4 text-lg md:text-xl text-[#94A3B8] mx-auto mb-12 leading-relaxed max-w-2xl">
-            India's leading FMCG, dairy, seafood, and pharma companies trust Axon to protect their cold chain every day.
+            India's leading FMCG, dairy, seafood, and pharma companies trust Cargofy to protect their cold chain every day.
           </p>
           <div className="flex flex-wrap justify-center gap-4 md:gap-8 font-mono text-sm font-bold text-white uppercase tracking-wider">
             <span className="bg-[#111622] border border-[#1E293B] px-4 py-2 rounded-full">₹42 Crore saved</span>
@@ -365,7 +365,7 @@ export const CustomersPage: React.FC = () => {
       {/* STATS BAR */}
       <section className="py-24 border-t border-[#1E293B] bg-[#080B12]">
         <div className="max-w-6xl mx-auto px-4 text-center">
-          <h2 className="text-sm font-bold text-[#94A3B8] uppercase tracking-widest mb-12">AXON BY THE NUMBERS</h2>
+          <h2 className="text-sm font-bold text-[#94A3B8] uppercase tracking-widest mb-12">CARGOFY BY THE NUMBERS</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div>
               <div style={{ fontFamily: FONTS.display }} className="text-5xl font-bold text-white mb-2">2.4M+</div>
@@ -400,7 +400,7 @@ const NavBar = ({ scrolled, mobileMenuOpen, setMobileMenuOpen }: any) => (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="flex justify-between items-center h-20">
         <div className="flex-shrink-0 flex items-center">
-          <Link to="/" style={{ fontFamily: 'monospace' }} className="text-2xl font-bold tracking-widest text-white hover:text-[#4DD9AC] transition-colors">AXON</Link>
+          <Link to="/" style={{ fontFamily: 'monospace' }} className="text-2xl font-bold tracking-widest text-white hover:text-[#4DD9AC] transition-colors">CARGOFY</Link>
         </div>
         <div className="hidden md:flex items-center space-x-8">
           <Link to="/product" className="text-[#94A3B8] hover:text-white transition-colors text-sm font-medium">Platform</Link>
@@ -428,7 +428,7 @@ const Footer = () => (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="grid grid-cols-2 md:grid-cols-5 gap-12 mb-16">
         <div className="col-span-2 md:col-span-1">
-          <div style={{ fontFamily: 'monospace' }} className="text-2xl font-bold tracking-widest text-white mb-6">AXON</div>
+          <div style={{ fontFamily: 'monospace' }} className="text-2xl font-bold tracking-widest text-white mb-6">CARGOFY</div>
         </div>
         <div>
           <h4 className="text-white font-bold mb-6 uppercase tracking-wider text-sm">Platform</h4>
@@ -460,7 +460,7 @@ const Footer = () => (
         </div>
       </div>
       <div className="pt-8 border-t border-[#1E293B] flex flex-col md:flex-row justify-between items-center gap-4">
-        <p className="text-[#64748B] text-sm">© 2024 Axon Smart Supply Chain. Built in India 🇮🇳.</p>
+        <p className="text-[#64748B] text-sm">© 2024 Cargofy Smart Supply Chain. Built in India.</p>
       </div>
     </div>
   </footer>

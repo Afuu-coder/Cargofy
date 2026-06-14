@@ -19,7 +19,6 @@ from datetime import datetime, timezone
 from typing import Any, Dict, Optional, Tuple
 
 from app.core.config import settings
-from app.services import firebase_rtdb
 from app.services.pubsub_service import publish_network_event, publish_risk_state_changed
 
 logger = logging.getLogger(__name__)
@@ -286,15 +285,7 @@ async def push_risk_to_rtdb(shipment_code: str, risk_result: Dict[str, Any],
     """
     import time
     new_cat = risk_result["risk_category"]
-
-    firebase_rtdb.push_risk_score(shipment_code, {
-        "score":       risk_result["risk_score"],
-        "category":    new_cat,
-        "spoil_min":   risk_result["time_to_spoil_min"],
-        "spoil_prob":  risk_result["spoilage_probability_2h"],
-        "factors":     risk_result["factor_contributions"],
-        "updated_at":  int(time.time() * 1000),
-    })
+    # Firebase RTDB push removed
 
     if old_category and old_category != new_cat:
         logger.info("[Risk] Category change: %s → %s (shipment=%s)", old_category, new_cat, shipment_code)

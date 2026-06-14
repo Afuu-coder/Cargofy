@@ -1,18 +1,13 @@
 /**
- * LiveFleetMap — 2D Mapbox GL fleet map
- * Uses Mapbox GL JS with the dark-v11 style.
- * Markers glow by risk level; popups show shipment details.
+ * Cesium3DFleetMap (Now using Mapbox GL JS 3D Globe for a cleaner experience)
+ * TRD §1 Core Feature
+ * Photorealistic 3D globe with Mapbox Satellite Streets base layer.
+ * Truck markers glow by risk: CRITICAL=red, HIGH=amber, MEDIUM=blue, LOW=green.
  */
 import React, { useEffect, useRef, useState } from 'react';
-import { type Shipment } from '../lib/api';
+import type { Shipment } from '../lib/api';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string;
-
-interface Props {
-  shipments: Shipment[];
-  onShipmentClick: (id: string) => void;
-  className?: string;
-}
 
 const RISK_COLORS: Record<string, string> = {
   CRITICAL: '#EF4444',
@@ -21,17 +16,22 @@ const RISK_COLORS: Record<string, string> = {
   LOW:      '#10B981',
 };
 
-function getRiskColor(s: Shipment): string {
-  const cat = s.current_risk?.risk_category?.toUpperCase() ?? 'LOW';
-  return RISK_COLORS[cat] ?? '#10B981';
-}
-
 function getRiskCategory(s: Shipment): string {
   const cat = s.current_risk?.risk_category?.toUpperCase() ?? 'LOW';
   return ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'].includes(cat) ? cat : 'LOW';
 }
 
-export function LiveFleetMap({ shipments, onShipmentClick, className = '' }: Props) {
+function getRiskColor(s: Shipment): string {
+  return RISK_COLORS[getRiskCategory(s)] ?? '#10B981';
+}
+
+interface Props {
+  shipments: Shipment[];
+  onShipmentClick?: (id: string) => void;
+  className?: string;
+}
+
+export function Cesium3DFleetMap({ shipments, onShipmentClick, className = '' }: Props) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef       = useRef<any>(null);
   const markersRef   = useRef<Record<string, any>>({});
@@ -63,7 +63,7 @@ export function LiveFleetMap({ shipments, onShipmentClick, className = '' }: Pro
     load();
 
     return () => {
-      // Clean up markers
+      // Clean up
       Object.values(markersRef.current).forEach((m: any) => m.remove());
       markersRef.current = {};
       if (popupRef.current) { popupRef.current.remove(); popupRef.current = null; }
@@ -81,37 +81,51 @@ export function LiveFleetMap({ shipments, onShipmentClick, className = '' }: Pro
 
     mbgl.accessToken = MAPBOX_TOKEN;
 
+    if (mapContainer.current) {
+      mapContainer.current.innerHTML = ''; // Ensure container is empty before initialization
+    }
+
     const map = new mbgl.Map({
       container:   mapContainer.current,
-      style:       'mapbox://styles/mapbox/dark-v11',
+      style:       'mapbox://styles/mapbox/satellite-streets-v12', // Satellite for globe view
       center:      [91.5, 26.0],          // Northeast India
-      zoom:        5.5,
-      pitch:       40,
+      zoom:        3.5,                   // Zoomed out to see globe curve
+      pitch:       45,
       bearing:     0,
       antialias:   true,
+      projection:  'globe',               // Crucial for 3D globe effect
       attributionControl: false,
     });
+    
+    mapRef.current = map;
 
     map.addControl(new mbgl.NavigationControl({ showCompass: true }), 'top-right');
-    map.addControl(new mbgl.ScaleControl({ maxWidth: 100, unit: 'metric' }), 'bottom-left');
 
-    map.on('load', () => {
-      // Subtle fog
+    map.on('style.load', () => {
+      // Add atmosphere and stars
       map.setFog({
-        'color':          'rgb(4, 8, 18)',
-        'high-color':     'rgb(15, 30, 60)',
-        'horizon-blend':  0.05,
-        'space-color':    'rgb(2, 4, 10)',
-        'star-intensity': 0.3,
+        'color': 'rgb(4, 8, 18)', // Lower atmosphere
+        'high-color': 'rgb(15, 30, 60)', // Upper atmosphere
+        'horizon-blend': 0.05, // Atmosphere thickness
+        'space-color': 'rgb(2, 4, 10)', // Background color
+        'star-intensity': 0.6 // Background star brightness
       });
 
-      // Darken water
-      if (map.getLayer('water')) {
-        map.setPaintProperty('water', 'fill-color', '#060E1C');
-      }
+      // Add terrain for 3D mountains
+      map.addSource('mapbox-dem', {
+        'type': 'raster-dem',
+        'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
+        'tileSize': 512,
+        'maxzoom': 14
+      });
+      map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
 
-      mapRef.current = map;
       setMapReady(true);
+      
+      // Force resize to ensure it fits the container
+      setTimeout(() => {
+        map.resize();
+      }, 100);
     });
 
     map.on('error', () => setLoadErr(true));
@@ -125,7 +139,7 @@ export function LiveFleetMap({ shipments, onShipmentClick, className = '' }: Pro
     const map = mapRef.current;
 
     const currentIds = new Set(
-      shipments.filter(s => hasCoords(s)).map(s => s.id)
+      shipments.filter(hasCoords).map(s => s.id)
     );
 
     // Remove stale markers
@@ -219,7 +233,9 @@ export function LiveFleetMap({ shipments, onShipmentClick, className = '' }: Pro
           .setPopup(popup)
           .addTo(map);
 
-        el.addEventListener('click', () => onShipmentClick(s.id));
+        if (onShipmentClick) {
+          el.addEventListener('click', () => onShipmentClick(s.id));
+        }
 
         markersRef.current[s.id] = marker;
       } else {
@@ -227,35 +243,9 @@ export function LiveFleetMap({ shipments, onShipmentClick, className = '' }: Pro
         markersRef.current[s.id].setLngLat([lng, lat]);
       }
     });
-
-    // Auto-fit bounds if we have markers
-    const coords = shipments
-      .filter(hasCoords)
-      .map(s => [
-        s.current_location?.lng ?? s.origin_lng!,
-        s.current_location?.lat ?? s.origin_lat!,
-      ]);
-
-    if (coords.length > 1 && coords.length <= 30) {
-      try {
-        const bounds = coords.reduce(
-          (b, c) => b.extend(c as [number, number]),
-          new (window as any).mapboxgl.LngLatBounds(
-            coords[0] as [number, number],
-            coords[0] as [number, number]
-          )
-        );
-        map.fitBounds(bounds, { padding: 80, maxZoom: 12, duration: 1200 });
-      } catch {}
-    }
   }, [shipments, mapReady, onShipmentClick]);
 
   const shipsWithCoords = shipments.filter(hasCoords);
-
-  // Fallback: if no Mapbox token, use Leaflet/OSM
-  if (!MAPBOX_TOKEN) {
-    return <LeafletFallback shipments={shipments} onShipmentClick={onShipmentClick} className={className} />;
-  }
 
   return (
     <div className={`relative ${className}`}>
@@ -268,7 +258,7 @@ export function LiveFleetMap({ shipments, onShipmentClick, className = '' }: Pro
       {!mapReady && !loadErr && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#080B12] z-10 pointer-events-none">
           <div className="w-8 h-8 rounded-full border-2 border-[#4DD9AC]/20 border-t-[#4DD9AC] animate-spin" />
-          <div className="text-xs text-[#64748B]">Loading map…</div>
+          <div className="text-xs text-[#64748B]">Loading 3D globe…</div>
         </div>
       )}
 
@@ -314,70 +304,5 @@ function hasCoords(s: Shipment): boolean {
   return !!(
     (s.current_location?.lat && s.current_location?.lng) ||
     (s.origin_lat && s.origin_lng)
-  );
-}
-
-// ── OSM Leaflet Fallback (no token needed) ────────────────────────────────────
-function LeafletFallback({ shipments, onShipmentClick, className = '' }: Props) {
-  const mapContainer = useRef<HTMLDivElement>(null);
-  const mapRef       = useRef<any>(null);
-  const markersRef   = useRef<Record<string, any>>({});
-  const [mapReady, setMapReady] = useState(false);
-
-  useEffect(() => {
-    if (mapRef.current) return;
-
-    if (!document.getElementById('leaflet-css')) {
-      const link = document.createElement('link');
-      link.id = 'leaflet-css'; link.rel = 'stylesheet';
-      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-      document.head.appendChild(link);
-    }
-
-    const init = () => {
-      if ((window as any).L) { setupMap(); return; }
-      const s = document.createElement('script');
-      s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-      s.onload = setupMap;
-      document.head.appendChild(s);
-    };
-
-    const setupMap = () => {
-      if (!mapContainer.current || mapRef.current) return;
-      const L = (window as any).L;
-      const map = L.map(mapContainer.current, { center: [26, 91.5], zoom: 6, zoomControl: true, attributionControl: false });
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19 }).addTo(map);
-      mapRef.current = map;
-      setMapReady(true);
-    };
-
-    init();
-    return () => { if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; } };
-  }, []);
-
-  useEffect(() => {
-    if (!mapReady || !mapRef.current) return;
-    const L = (window as any).L; if (!L) return;
-    const map = mapRef.current;
-    shipments.forEach(s => {
-      const lat = s.current_location?.lat ?? s.origin_lat;
-      const lng = s.current_location?.lng ?? s.origin_lng;
-      if (!lat || !lng) return;
-      const color = getRiskColor(s);
-      if (!markersRef.current[s.id]) {
-        const icon = L.divIcon({ className: '', iconSize: [28, 28], iconAnchor: [14, 14],
-          html: `<div style="width:28px;height:28px;background:rgba(13,17,23,0.92);border:2.5px solid ${color};border-radius:50%;box-shadow:0 0 10px ${color}66;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;">🚛</div>` });
-        markersRef.current[s.id] = L.marker([lat, lng], { icon }).addTo(map).on('click', () => onShipmentClick(s.id));
-      } else {
-        markersRef.current[s.id].setLatLng([lat, lng]);
-      }
-    });
-  }, [shipments, mapReady, onShipmentClick]);
-
-  return (
-    <div className={`relative ${className}`}>
-      <div ref={mapContainer} style={{ width: '100%', height: '100%', minHeight: '300px', background: '#080B12' }} />
-      <style>{`.leaflet-control-attribution{display:none!important}.leaflet-container{background:#080B12!important}`}</style>
-    </div>
   );
 }

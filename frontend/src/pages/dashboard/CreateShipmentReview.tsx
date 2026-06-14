@@ -8,7 +8,7 @@ export function CreateShipmentReview() {
 {/*  TopAppBar  */}
 <header className="bg-[#0A0D14] dark:bg-slate-950 text-[#4DD9AC] dark:text-[#4DD9AC] font-['Space_Grotesk'] tracking-tight docked full-width top-0 h-[56px] bg-surface-container-low border-none shadow-none flex justify-between items-center w-full px-6 z-50 fixed left-0 right-0">
 <div className="flex items-center gap-8">
-<div className="text-2xl font-black text-[#4DD9AC] tracking-tighter cursor-pointer">AXON</div>
+<div className="text-2xl font-black text-[#4DD9AC] tracking-tighter cursor-pointer">CARGOFY</div>
 <nav className="hidden md:flex items-center gap-6">
 <a className="text-slate-400 font-medium hover:text-slate-200 hover:bg-slate-800/50 transition-colors px-3 py-1.5 rounded-DEFAULT text-sm flex items-center gap-2" href="#">Monitoring</a>
 <a className="text-slate-400 font-medium hover:text-slate-200 hover:bg-slate-800/50 transition-colors px-3 py-1.5 rounded-DEFAULT text-sm flex items-center gap-2" href="#">Intelligence</a>

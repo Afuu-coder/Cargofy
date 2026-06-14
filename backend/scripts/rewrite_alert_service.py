@@ -1,7 +1,12 @@
-"""
+import re
+
+with open('c:/Users/afjal/Desktop/Cargofy/Axon/backend/app/services/alert_service.py', 'r', encoding='utf-8') as f:
+    content = f.read()
+
+new_content = """\"\"\"
 Axon — Alert Service (Blueprint: Alerts Center)
 Flows: A (risk-triggered), B (webhook/ack), C (escalation), D (manual)
-"""
+\"\"\"
 from __future__ import annotations
 
 import json
@@ -65,7 +70,7 @@ async def generate_alert_message(
     custom_note: Optional[str] = None,
     mode: str = "DRIVER",
 ) -> str:
-    """Generate WhatsApp alert text via Gemma 2 (falls back to template)."""
+    \"\"\"Generate WhatsApp alert text via Gemma 2 (falls back to template).\"\"\"
     tmpl = ALERT_TEMPLATES.get(template_id, {})
     prefix = SEVERITY_PREFIX.get(severity, "⚠️ ")
 
@@ -75,10 +80,10 @@ async def generate_alert_message(
         vertexai.init(project=settings.VERTEX_AI_PROJECT, location=settings.VERTEX_AI_LOCATION)
         model = GenerativeModel("gemma-2-9b-it")
         prompt = (
-            f"Generate a WhatsApp cold-chain alert for a truck {mode.lower()}.\n"
-            f"Alert: {tmpl.get('label','Temperature Alert')}, Severity: {severity}\n"
-            f"Data: {json.dumps(variables)}\n"
-            f"{'Note: ' + custom_note if custom_note else ''}\n"
+            f"Generate a WhatsApp cold-chain alert for a truck {mode.lower()}.\\n"
+            f"Alert: {tmpl.get('label','Temperature Alert')}, Severity: {severity}\\n"
+            f"Data: {json.dumps(variables)}\\n"
+            f"{'Note: ' + custom_note if custom_note else ''}\\n"
             f"Rules: Start with '{prefix}'. Include shipment ID, actual numbers, "
             f"tell driver exactly what to DO. Under 100 words. Use emoji. "
             f"Output ONLY the message text."
@@ -105,7 +110,7 @@ async def generate_alert_message(
         msg = f"{prefix}Alert on {ship_id}. Please check cargo and respond immediately."
 
     if custom_note:
-        msg += f"\n📝 Note: {custom_note}"
+        msg += f"\\n📝 Note: {custom_note}"
     return msg
 
 
@@ -178,7 +183,7 @@ async def create_and_send_alert(
     risk_score: float = 0,
     skip_dedup: bool = False,
 ) -> Dict[str, Any]:
-    """Blueprint Flow A + D: create alert, send WhatsApp, log, schedule escalation."""
+    \"\"\"Blueprint Flow A + D: create alert, send WhatsApp, log, schedule escalation.\"\"\"
     variables = variables or {}
     template_id = _select_template(product_type, alert_type)
     tmpl = ALERT_TEMPLATES.get(template_id, {})
@@ -245,7 +250,7 @@ async def create_and_send_alert(
 # ── Flow B: Webhook ack update ────────────────────────────────────────────────
 
 async def process_whatsapp_webhook(payload: Dict[str, Any]) -> int:
-    """Blueprint Flow B: WhatsApp delivery/read webhook → update Postgres."""
+    \"\"\"Blueprint Flow B: WhatsApp delivery/read webhook → update Postgres.\"\"\"
     STATUS_MAP = {"sent": "SENT", "delivered": "DELIVERED", "read": "READ", "failed": "FAILED"}
     updated = 0
     db = SessionLocal()
@@ -274,7 +279,7 @@ async def process_whatsapp_webhook(payload: Dict[str, Any]) -> int:
 # ── Flow C: Escalation check ──────────────────────────────────────────────────
 
 async def check_and_escalate(alert_id: str, shipment_id: str, next_to: str) -> Dict[str, Any]:
-    """Blueprint Flow C: Cloud Task callback — escalate if still unread."""
+    \"\"\"Blueprint Flow C: Cloud Task callback — escalate if still unread.\"\"\"
     db = SessionLocal()
     try:
         alert = db.query(Alert).filter(Alert.id == alert_id).first()
@@ -285,8 +290,8 @@ async def check_and_escalate(alert_id: str, shipment_id: str, next_to: str) -> D
             return {"escalated": False, "reason": f"already_acked:{alert.ack_status}"}
 
         orig_msg  = alert.message_body or ""
-        esc_msg   = (f"⚠️ ESCALATION: Driver unresponsive on shipment {shipment_id}.\n"
-                     f"Original alert: {orig_msg[:120]}...\nPlease call or take action immediately.")
+        esc_msg   = (f"⚠️ ESCALATION: Driver unresponsive on shipment {shipment_id}.\\n"
+                     f"Original alert: {orig_msg[:120]}...\\nPlease call or take action immediately.")
 
         esc_phone = settings.DEMO_PHONE_OVERRIDE
 
@@ -357,3 +362,7 @@ def mark_false_positive(alert_id: str, user_id: str, note: str = "") -> bool:
         return True
     finally:
         db.close()
+"""
+
+with open('c:/Users/afjal/Desktop/Cargofy/Axon/backend/app/services/alert_service.py', 'w', encoding='utf-8') as f:
+    f.write(new_content)

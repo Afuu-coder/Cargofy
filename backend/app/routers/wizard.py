@@ -30,7 +30,6 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.models.models import Shipment, User
 from app.schemas.schemas import ShipmentCreate, ShipmentResponse, RiskSummary
-from app.services import firebase_rtdb
 from app.services.pubsub_service import publish_network_event
 
 router = APIRouter()
@@ -282,7 +281,7 @@ async def pair_iot(body: IotPairRequest):
     }
 
     # Persist pairing to Firebase RTDB /iot_pairings/{shipment_id}
-    firebase_rtdb._init()
+    None
     try:
         from firebase_admin import db as rtdb_db
         ref = rtdb_db.reference(f"/iot_pairings/{body.shipment_id}")

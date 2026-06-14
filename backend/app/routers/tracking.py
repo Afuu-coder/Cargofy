@@ -25,7 +25,6 @@ from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.models.models import Shipment, SensorReading
-from app.services import firebase_rtdb
 from app.services.eta_service import predict_eta
 from app.services.telemetry_pipeline import check_sensor_silence
 from app.services.pubsub_service import publish_network_event
@@ -95,7 +94,7 @@ async def get_tracking(shipment_code: str, db: Session = Depends(get_db)):
     code = ship.shipment_code
 
     # Live tracking data from RTDB
-    live = firebase_rtdb.get_live_tracking(code) or {}
+    live = {}
 
     # Latest sensor from DB
     sensor = _latest_sensor(ship.id, db)
@@ -261,10 +260,10 @@ async def get_fleet_positions(db: Session = Depends(get_db)):
     Returns live positions of all active shipments.
     Merges RTDB live_tracking data with Postgres shipment metadata.
     """
-    live_all = firebase_rtdb.get_all_live_positions()
+    live_all = None
 
     # Also get active shipments from RTDB /active_shipments
-    active = firebase_rtdb.get_active_shipments()
+    active = None
 
     # Merge
     positions = []
@@ -336,8 +335,8 @@ async def stage_override(
     ship = _get_shipment_by_code(shipment_code, db)
 
     # Update RTDB
-    firebase_rtdb.push_live_tracking(ship.shipment_code, {"stage": body.new_stage})
-    firebase_rtdb.push_shipment_state(ship.shipment_code, {"stage": body.new_stage})
+    None
+    None
 
     # Background: Firestore stage event + Pub/Sub
     async def _bg():
@@ -376,7 +375,7 @@ async def get_eta(shipment_code: str, db: Session = Depends(get_db)):
     Returns dynamic ETA. Tries Vertex AI eta-predictor, falls back to heuristic.
     """
     ship = _get_shipment_by_code(shipment_code, db)
-    live = firebase_rtdb.get_live_tracking(ship.shipment_code) or {}
+    live = {}
 
     remaining_km = live.get("remaining_km") or float(getattr(ship, "route_distance_km", 200) or 200)
     speed_kmh    = live.get("speed_kmh", 40) or 40
@@ -416,7 +415,7 @@ async def check_silence(
     Publishes alerts and marks silence_alert in RTDB.
     """
     # Get all active shipments from RTDB
-    active_raw = firebase_rtdb.get_active_shipments()
+    active_raw = None
     active_list = [
         {"shipment_code": code, **data}
         for code, data in active_raw.items()

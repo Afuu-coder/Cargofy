@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-export const WhyAxonPage: React.FC = () => {
+export const WhyCargofyPage: React.FC = () => {
   return (
     <div className="dark bg-[#10131b] text-[#e0e2ed] min-h-screen flex flex-col font-['Inter']">
       
@@ -9,7 +9,7 @@ export const WhyAxonPage: React.FC = () => {
 <nav className="fixed top-0 w-full z-50 bg-[#10131b]/80 backdrop-blur-xl shadow-2xl shadow-black/40 border-b border-transparent transition-colors duration-300">
 <div className="flex justify-between items-center px-8 h-20 w-full max-w-screen-2xl mx-auto">
 {/*  Brand  */}
-<a className="text-2xl font-bold tracking-tighter text-[#4DD9AC] font-headline" href="/">AXON</a>
+<a className="text-2xl font-bold tracking-tighter text-[#4DD9AC] font-headline" href="/">CARGOFY</a>
 {/*  Navigation Links (Desktop)  */}
 <div className="hidden md:flex space-x-8 items-center font-label">
 <Link className="text-slate-400 hover:text-slate-100 transition-colors hover:bg-[#1d2027] hover:text-[#4DD9AC] px-3 py-2 rounded"  to="/solutions">Solutions</Link>
@@ -206,8 +206,8 @@ export const WhyAxonPage: React.FC = () => {
 <div className="grid grid-cols-1 md:grid-cols-4 gap-12 px-8 max-w-screen-2xl mx-auto border-t border-[#32353d]/20 pt-16">
 {/*  Brand Column  */}
 <div className="flex flex-col">
-<span className="text-xl font-black text-[#4DD9AC] font-headline mb-4">AXON</span>
-<span className="font-label text-slate-500 text-sm">© 2024 AXON Intelligence. Precision in every degree.</span>
+<span className="text-xl font-black text-[#4DD9AC] font-headline mb-4">CARGOFY</span>
+<span className="font-label text-slate-500 text-sm">© 2024 CARGOFY Intelligence. Precision in every degree.</span>
 </div>
 {/*  Links Column  */}
 <div className="flex flex-col space-y-3 font-label text-sm">
@@ -226,4 +226,4 @@ export const WhyAxonPage: React.FC = () => {
   );
 };
 
-export default WhyAxonPage;
+export default WhyCargofyPage;

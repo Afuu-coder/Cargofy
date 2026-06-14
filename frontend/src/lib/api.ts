@@ -5,9 +5,12 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
+import { supabase } from './supabase';
+
 // Attach auth token if present
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('axon_token');
+api.interceptors.request.use(async (config) => {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token || localStorage.getItem('cargofy_token');
   if (token) config.headers['Authorization'] = `Bearer ${token}`;
   return config;
 });
@@ -32,9 +35,14 @@ export interface Shipment {
   expected_arrival?: string;
   status: string;
   created_at?: string;
+  current_location?: {
+    lat: number;
+    lng: number;
+  };
   current_risk?: {
     risk_score?: number;
     risk_category?: string;
+    temperature?: number;
     time_to_spoil_minutes?: number;
     computed_at?: string;
     explanation?: string;
@@ -202,7 +210,7 @@ export const getRoute = async (origin_lat: number, origin_lng: number, dest_lat:
 
 // Sensor readings
 export const sendSensor = (id: string, payload: SensorPayload) =>
-  api.post(`/api/v1/shipments/${id}/sensor`, payload).then(r => r.data);
+  api.post(`/api/v1/sensors/${id}/sensor`, payload).then(r => r.data);
 
 export const getSensorHistory = (id: string) =>
   api.get<SensorReading[]>(`/api/v1/shipments/${id}/sensors`).then(r => r.data);
@@ -765,6 +773,153 @@ export interface AnalyticsTrendForecast {
   high_risk_days: string[];
   recommended_actions: string[];
   confidence: number;
+}
+
+/* ── Blockchain Audit Trail API ─────────────────────────────────────────────── */
+
+export interface BlockchainCertifyPayload {
+  shipment_code:   string;
+  product_type:    string;
+  departure_time?: number;    // Unix timestamp
+  arrival_time?:   number;    // Unix timestamp
+  min_temp:        number;
+  max_temp:        number;
+  max_risk_score:  number;    // 0–1
+  reroute_count:   number;
+  whatsapp_sent:   boolean;
+  verdict?:        'SAFE' | 'SPOILED' | 'PARTIAL';
+  ipfs_hash?:      string;
+}
+
+export interface BlockchainCertResult {
+  success:        boolean;
+  tx_hash?:       string;
+  etherscan_url?: string;
+  verdict:        string;
+  shipment_code:  string;
+  demo_mode?:     boolean;
+  error?:         string;
+}
+
+export interface BlockchainVerifyResult {
+  shipment_code:   string;
+  found:           boolean;
+  verdict?:        string;
+  min_temp?:       number;
+  max_temp?:       number;
+  max_risk_score?: number;
+  reroute_count?:  number;
+  whatsapp_sent?:  boolean;
+  departure_time?: number;
+  arrival_time?:   number;
+  tx_hash?:        string;
+  etherscan_url?:  string;
+  demo_mode?:      boolean;
+}
+
+/** Issue an immutable integrity certificate on Ethereum Sepolia for a completed shipment */
+export const certifyShipment = (payload: BlockchainCertifyPayload) =>
+  api.post<BlockchainCertResult>('/api/v1/blockchain/certify', payload).then(r => r.data);
+
+/** Publicly verify a shipment's on-chain certificate — no auth required */
+export const verifyBlockchainCert = (shipmentCode: string) =>
+  api.get<BlockchainVerifyResult>(`/api/v1/blockchain/verify/${shipmentCode}`).then(r => r.data);
+
+/** Check blockchain integration status (contract address, demo mode, etc.) */
+export const getBlockchainStatus = () =>
+  api.get('/api/v1/blockchain/status').then(r => r.data);
+
+
+/* ── Autonomous Rerouting Agent API ─────────────────────────────────────────── */
+
+export interface RerouteAgentPayload {
+  shipment_code: string;
+  current_risk_score?: number;
+  force?: boolean;
+}
+
+export interface RerouteAgentResult {
+  shipment_code:    string;
+  decision:         string;
+  recommendation?:  string;
+  cold_hub?:        { name: string; distance_km: number; address: string };
+  risk_reduction?:  number;
+  agent_steps?:     string[];
+  source:           string;
+}
+
+/** Trigger the autonomous ADK rerouting agent for a shipment */
+export const triggerRerouteAgent = (payload: RerouteAgentPayload) =>
+  api.post<RerouteAgentResult>('/api/v1/agent/reroute', payload).then(r => r.data);
+
+/** Demo: Simulate a CRITICAL cold-chain event (for hackathon demos) */
+export const simulateCriticalEvent = (shipmentCode: string) =>
+  api.post('/api/v1/agent/simulate-critical', { shipment_code: shipmentCode }).then(r => r.data);
+
+
+/* ── Control Tower Snapshot API ─────────────────────────────────────────────── */
+
+export interface ControlTowerSnapshot {
+  network_stats:      Record<string, number | string>;
+  exceptions:         Array<{ shipment_code: string; severity: string; message: string }>;
+  journey_board:      Record<string, number>;
+  ai_actions:         Array<{ id: string; type: string; description: string; shipment_code?: string }>;
+  generated_at:       string;
+}
+
+/** Single call to get the full Control Tower state (replaces 3 separate calls) */
+export const getControlTowerSnapshot = () =>
+  api.get<ControlTowerSnapshot>('/api/v1/control-tower/snapshot').then(r => r.data);
+
+/** 6 KPI network-stats chips (30s cache) */
+export const getControlTowerNetworkStats = () =>
+  api.get('/api/v1/control-tower/network-stats').then(r => r.data);
+
+/** CRITICAL + HIGH exception items for banner */
+export const getControlTowerExceptions = () =>
+  api.get('/api/v1/control-tower/exception-banner').then(r => r.data);
+
+/** Shipments grouped by stage for journey board */
+export const getControlTowerJourneyBoard = () =>
+  api.get('/api/v1/control-tower/journey-board').then(r => r.data);
+
+/** AI suggestions from DB for control tower */
+export const getControlTowerAIActions = () =>
+  api.get('/api/v1/control-tower/ai-actions').then(r => r.data);
+
+
+/* ── WebSocket: Live Risk Stream ─────────────────────────────────────────────── */
+
+/**
+ * Connect to the live risk WebSocket stream.
+ * The backend broadcasts risk events as they happen across the entire fleet.
+ *
+ * @param onMessage - callback fired with each parsed event
+ * @param onClose   - callback fired when socket closes
+ * @returns WebSocket instance (call .close() to disconnect)
+ *
+ * Usage:
+ *   const ws = connectLiveRiskStream(
+ *     (event) => console.log(event),
+ *     () => console.log('disconnected')
+ *   );
+ *   // later: ws.close();
+ */
+export function connectLiveRiskStream(
+  onMessage: (event: Record<string, unknown>) => void,
+  onClose?: () => void,
+): WebSocket {
+  const base = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000')
+    .replace(/^http/, 'ws');
+  const ws = new WebSocket(`${base}/api/v1/agent/ws/live`);
+
+  ws.onmessage = (e) => {
+    try { onMessage(JSON.parse(e.data)); } catch { /* ignore malformed */ }
+  };
+  ws.onclose = () => onClose?.();
+  ws.onerror = (err) => console.error('[LiveRiskStream] WS error', err);
+
+  return ws;
 }
 
 export default api;

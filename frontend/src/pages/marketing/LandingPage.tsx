@@ -41,8 +41,8 @@ export const LandingPage: React.FC = () => {
 
   const TABS = [
     { id: 'monitor', label: 'Monitor', icon: Activity, title: 'Live IoT monitoring for every shipment.', desc: 'Temperature · Humidity · Location · Reefer health — updated every 5 minutes.' },
-    { id: 'predict', label: 'Predict', icon: BrainCircuit, title: 'AI-powered spoilage prediction before breach becomes loss.', desc: 'Axon calculates time-to-spoil and risk score — and tells you exactly why.' },
-    { id: 'intervene', label: 'Intervene', icon: Zap, title: 'One-tap alerts, reroutes, and cold hub recommendations.', desc: 'When risk rises, Axon tells you what to do — and helps you do it.' },
+    { id: 'predict', label: 'Predict', icon: BrainCircuit, title: 'AI-powered spoilage prediction before breach becomes loss.', desc: 'Cargofy calculates time-to-spoil and risk score — and tells you exactly why.' },
+    { id: 'intervene', label: 'Intervene', icon: Zap, title: 'One-tap alerts, reroutes, and cold hub recommendations.', desc: 'When risk rises, Cargofy tells you what to do — and helps you do it.' },
     { id: 'prove', label: 'Prove', icon: FileCheck, title: 'Full audit trail, compliance logs, and post-delivery reports.', desc: 'Every shipment, every excursion, every action — documented.' }
   ];
 
@@ -56,7 +56,7 @@ export const LandingPage: React.FC = () => {
             {/* Logo */}
             <div className="flex-shrink-0 flex items-center">
               <Link to="/" style={{ fontFamily: 'monospace' }} className="text-2xl font-bold tracking-widest text-white hover:text-[#4DD9AC] transition-colors">
-                AXON
+                CARGOFY
               </Link>
             </div>
             
@@ -99,7 +99,7 @@ export const LandingPage: React.FC = () => {
             <span style={{ color: COLORS.teal }}>Before It Happens.</span>
           </h1>
           <p className="mt-4 max-w-2xl text-lg md:text-xl text-[#94A3B8] mx-auto mb-10 leading-relaxed">
-            Axon is India's first AI-powered cold chain intelligence platform. Monitor every perishable shipment in real time, predict spoilage before it occurs, and intervene — automatically.
+            Cargofy is India's first AI-powered cold chain intelligence platform. Monitor every perishable shipment in real time, predict spoilage before it occurs, and intervene — automatically.
           </p>
           
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-16">
@@ -182,7 +182,7 @@ export const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 style={{ fontFamily: FONTS.display }} className="text-3xl md:text-5xl font-bold text-white max-w-4xl mx-auto leading-tight">
-              Axon Gives You Eyes, Intelligence, and Control Across Every Cold Chain Shipment
+              Cargofy Gives You Eyes, Intelligence, and Control Across Every Cold Chain Shipment
             </h2>
           </div>
 
@@ -261,7 +261,7 @@ export const LandingPage: React.FC = () => {
             <div className="px-4">
               <div style={{ fontFamily: FONTS.display, color: COLORS.teal }} className="text-4xl md:text-5xl font-bold mb-2">₹42 Crore</div>
               <div className="text-white font-medium mb-1">Loss Prevented</div>
-              <div className="text-xs text-[#94A3B8]">by Axon Users</div>
+              <div className="text-xs text-[#94A3B8]">by Cargofy Users</div>
             </div>
             <div className="px-4">
               <div style={{ fontFamily: FONTS.display, color: COLORS.teal }} className="text-4xl md:text-5xl font-bold mb-2">94.8%</div>
@@ -280,7 +280,7 @@ export const LandingPage: React.FC = () => {
             </div>
           </div>
           <p className="text-center text-[#94A3B8] text-xs mt-10">
-            *Based on Axon customer data, 2024
+            *Based on Cargofy customer data, 2024
           </p>
         </div>
       </section>
@@ -290,7 +290,7 @@ export const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 style={{ fontFamily: FONTS.display }} className="text-3xl md:text-5xl font-bold text-white">
-              From Shipment to Delivery — Axon Never Blinks
+              From Shipment to Delivery — Cargofy Never Blinks
             </h2>
           </div>
 
@@ -314,7 +314,7 @@ export const LandingPage: React.FC = () => {
               </div>
               <h3 style={{ fontFamily: FONTS.display }} className="text-2xl font-bold text-white mb-4">2. Monitor in Real Time</h3>
               <p className="text-[#94A3B8] leading-relaxed">
-                IoT sensors or our simulator feed live telemetry. Axon's AI watches every signal and calculates spoilage risk continuously.
+                IoT sensors or our simulator feed live telemetry. Cargofy's AI watches every signal and calculates spoilage risk continuously.
               </p>
             </div>
 
@@ -324,7 +324,7 @@ export const LandingPage: React.FC = () => {
               </div>
               <h3 style={{ fontFamily: FONTS.display }} className="text-2xl font-bold text-white mb-4">3. Intervene Early</h3>
               <p className="text-[#94A3B8] leading-relaxed">
-                If risk rises, Axon alerts your driver, suggests rerouting, and recommends the nearest cold hub — before damage is done.
+                If risk rises, Cargofy alerts your driver, suggests rerouting, and recommends the nearest cold hub — before damage is done.
               </p>
             </div>
           </div>
@@ -339,7 +339,7 @@ export const LandingPage: React.FC = () => {
           <div className="flex flex-col md:flex-row items-center gap-12">
             <div className="md:w-1/2">
               <div style={{ borderColor: COLORS.border }} className="aspect-video w-full border rounded-xl shadow-2xl flex items-center justify-center relative overflow-hidden">
-                <img src="/images/axon_live_map.png" alt="Live Map & Dashboard UI" className="w-full h-full object-cover" />
+                <img src="/images/cargofy_live_map.png" alt="Live Map & Dashboard UI" className="w-full h-full object-cover" />
               </div>
             </div>
             <div className="md:w-1/2">
@@ -362,13 +362,13 @@ export const LandingPage: React.FC = () => {
           <div className="flex flex-col md:flex-row-reverse items-center gap-12">
             <div className="md:w-1/2">
               <div style={{ borderColor: COLORS.border }} className="aspect-video w-full border rounded-xl shadow-2xl flex items-center justify-center relative overflow-hidden">
-                <img src="/images/axon_risk_engine.png" alt="Risk Engine Analysis UI" className="w-full h-full object-cover" />
+                <img src="/images/cargofy_risk_engine.png" alt="Risk Engine Analysis UI" className="w-full h-full object-cover" />
               </div>
             </div>
             <div className="md:w-1/2">
               <h3 style={{ fontFamily: FONTS.display }} className="text-3xl font-bold text-white mb-6">Spoilage Prediction Engine</h3>
               <p className="text-[#94A3B8] text-lg mb-8 leading-relaxed">
-                Axon calculates spoilage risk using 8+ live factors: cargo temperature, ambient conditions, humidity, transit delay, reefer health, and more.
+                Cargofy calculates spoilage risk using 8+ live factors: cargo temperature, ambient conditions, humidity, transit delay, reefer health, and more.
               </p>
               <ul className="space-y-4">
                 {['Risk score updated every 60 seconds', 'Factor-by-factor breakdown of what\'s driving risk', '"If you act now" vs "if you wait" outcome comparison', 'Operational language — no jargon'].map((item, i) => (
@@ -385,13 +385,13 @@ export const LandingPage: React.FC = () => {
           <div className="flex flex-col md:flex-row items-center gap-12">
             <div className="md:w-1/2">
               <div style={{ borderColor: COLORS.border }} className="aspect-video w-full border rounded-xl shadow-2xl flex items-center justify-center relative overflow-hidden">
-                <img src="/images/axon_iot_telemetry.png" alt="IoT Telemetry / Simulator UI" className="w-full h-full object-cover" />
+                <img src="/images/cargofy_iot_telemetry.png" alt="IoT Telemetry / Simulator UI" className="w-full h-full object-cover" />
               </div>
             </div>
             <div className="md:w-1/2">
               <h3 style={{ fontFamily: FONTS.display }} className="text-3xl font-bold text-white mb-6">IoT + Simulation</h3>
               <p className="text-[#94A3B8] text-lg mb-8 leading-relaxed">
-                Works with live IoT hardware or our built-in simulator. No sensors yet? Simulate any condition — heatwave, reefer failure, route delay — and see how Axon responds.
+                Works with live IoT hardware or our built-in simulator. No sensors yet? Simulate any condition — heatwave, reefer failure, route delay — and see how Cargofy responds.
               </p>
               <ul className="space-y-4">
                 {['Compatible with major IoT sensor providers', '8 scenario presets for immediate testing', 'Real-time risk response to every sensor change', 'Demo-ready — no hardware needed'].map((item, i) => (
@@ -408,13 +408,13 @@ export const LandingPage: React.FC = () => {
           <div className="flex flex-col md:flex-row-reverse items-center gap-12">
             <div className="md:w-1/2">
               <div style={{ borderColor: COLORS.border }} className="aspect-video w-full border rounded-xl shadow-2xl flex items-center justify-center relative overflow-hidden">
-                <img src="/images/axon_interventions.png" alt="Intervention & Alerts UI" className="w-full h-full object-cover" />
+                <img src="/images/cargofy_interventions.png" alt="Intervention & Alerts UI" className="w-full h-full object-cover" />
               </div>
             </div>
             <div className="md:w-1/2">
               <h3 style={{ fontFamily: FONTS.display }} className="text-3xl font-bold text-white mb-6">Intervention Engine</h3>
               <p className="text-[#94A3B8] text-lg mb-8 leading-relaxed">
-                When risk rises, Axon doesn't just warn — it acts. One-tap WhatsApp alerts, escalation chain management, and nearest cold hub recommendations with estimated spoilage impact shown before you decide.
+                When risk rises, Cargofy doesn't just warn — it acts. One-tap WhatsApp alerts, escalation chain management, and nearest cold hub recommendations with estimated spoilage impact shown before you decide.
               </p>
               <ul className="space-y-4">
                 {['WhatsApp + Push + SMS alerts', 'Auto-escalation if driver doesn\'t acknowledge', 'Nearest cold storage with booking integration', 'Full SOP playbooks per alert type'].map((item, i) => (
@@ -486,7 +486,7 @@ export const LandingPage: React.FC = () => {
                 <div>
                   <div className="h-8 w-24 bg-[#1E293B] rounded mb-8"></div> {/* Fake Logo */}
                   <p className="text-white text-xl font-medium leading-relaxed italic mb-8">
-                    "We reduced cold chain loss by 71% in the first 3 months with Axon."
+                    "We reduced cold chain loss by 71% in the first 3 months with Cargofy."
                   </p>
                   <p className="text-[#94A3B8] text-sm font-bold uppercase tracking-wider mb-1">
                     — Head of Supply Chain, Company {i}
@@ -533,10 +533,10 @@ export const LandingPage: React.FC = () => {
         
         <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
           <h2 style={{ fontFamily: FONTS.display }} className="text-4xl md:text-6xl font-bold text-white mb-6">
-            Ready to See Axon in Action?
+            Ready to See Cargofy in Action?
           </h2>
           <p className="text-xl text-[#94A3B8] mb-12 max-w-2xl mx-auto leading-relaxed">
-            Walk through a live cold chain scenario — watch how Axon detects, predicts, and prevents spoilage in real time. Takes 20 minutes. No setup required.
+            Walk through a live cold chain scenario — watch how Cargofy detects, predicts, and prevents spoilage in real time. Takes 20 minutes. No setup required.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-6">
             <Link to="/signup" style={{ backgroundColor: COLORS.teal }} className="text-[#080B12] px-8 py-4 rounded-md font-bold text-lg hover:opacity-90 transition-all shadow-[0_0_20px_rgba(77,217,172,0.3)]">
@@ -554,7 +554,7 @@ export const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-12 mb-16">
             <div className="col-span-2 md:col-span-1">
-              <div style={{ fontFamily: 'monospace' }} className="text-2xl font-bold tracking-widest text-white mb-6">AXON</div>
+              <div style={{ fontFamily: 'monospace' }} className="text-2xl font-bold tracking-widest text-white mb-6">CARGOFY</div>
             </div>
             
             <div>
@@ -605,8 +605,8 @@ export const LandingPage: React.FC = () => {
           
           <div className="pt-8 border-t border-[#1E293B] flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-[#64748B] text-sm">
-              © 2024 Axon Smart Supply Chain. All rights reserved.<br/>
-              Built in India 🇮🇳 for the world's cold chains.
+              © 2024 Cargofy Smart Supply Chain. All rights reserved.<br/>
+              Built in India for the world's cold chains.
             </p>
             <div className="flex gap-6 text-[#64748B]">
               <a href="#" className="hover:text-white transition-colors text-sm">Twitter/X</a>

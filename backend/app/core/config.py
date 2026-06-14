@@ -15,7 +15,12 @@ class Settings(BaseSettings):
     BACKEND_URL:  str = ""  # Cloud Run URL for Cloud Tasks callbacks
 
     # ── Database ──────────────────────────────────────────────────────────────
-    DATABASE_URL: str = "postgresql://cargofy:cargofy_dev_password@localhost:5432/cargofy_db"
+    DATABASE_URL: str = "postgresql://postgres.yxlopjyyrukfutqhbwls:password@aws-0-ap-south-1.pooler.supabase.com:6543/postgres"
+
+    # ── Supabase ──────────────────────────────────────────────────────────────
+    SUPABASE_URL: str             = "https://yxlopjyyrukfutqhbwls.supabase.co"
+    SUPABASE_ANON_KEY: str        = ""
+    SUPABASE_SERVICE_ROLE_KEY: str = ""
 
     # ── Security ──────────────────────────────────────────────────────────────
     SECRET_KEY: str = "change-me-in-production"
@@ -26,10 +31,6 @@ class Settings(BaseSettings):
     VERTEX_AI_PROJECT: str = ""
     VERTEX_AI_LOCATION: str = "asia-south1"
     GOOGLE_MAPS_API_KEY: str = ""
-
-    # ── Firebase ─────────────────────────────────────────────────────────────
-    FIREBASE_SERVICE_ACCOUNT_PATH: str = "./secrets/firebase_service_account.json"
-    FIREBASE_DB_URL: str = ""  # e.g. https://cargofy-default-rtdb.firebaseio.com
 
     # ── BigQuery ─────────────────────────────────────────────────────────────
     BIGQUERY_DATASET: str = "cargofy_ops"

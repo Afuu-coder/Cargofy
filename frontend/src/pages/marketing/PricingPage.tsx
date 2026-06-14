@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Menu, X, CheckCircle2, XCircle, ChevronDown, HelpCircle, Calculator, 
-  ArrowRight, ShieldCheck, Zap
+  ArrowRight, ShieldCheck, Zap, BarChart3, Radio, Building2, Bell, FileText, Map
 } from 'lucide-react';
 
 const FONTS = {
@@ -26,7 +26,7 @@ const FAQS = [
   { q: "Is there a free trial for the Growth plan?", a: "Yes — 14-day full access, no credit card required." },
   { q: "Can I upgrade mid-month?", a: "Yes. Charges are prorated based on the days remaining in your billing cycle." },
   { q: "Do you charge per shipment or per user?", a: "Starter and Growth are shipment-based. Enterprise is fully custom." },
-  { q: "What IoT sensors does Axon support?", a: "Teltonika, Trakker, Monnit, and any MQTT-compatible sensor. We also offer our own certified sensor kit (optional)." },
+  { q: "What IoT sensors does Cargofy support?", a: "Teltonika, Trakker, Monnit, and any MQTT-compatible sensor. We also offer our own certified sensor kit (optional)." },
   { q: "Is WhatsApp integration included?", a: "Push alerts are included in all plans. WhatsApp is included in Growth and above." },
   { q: "Can we export compliance data for audits?", a: "The Growth plan exports PDF compliance reports. Enterprise gets PDF + Excel + API access." },
   { q: "Is there a setup fee?", a: "No setup fees on Starter or Growth. Enterprise may include an implementation fee for custom enterprise workflows." }
@@ -64,7 +64,7 @@ export const PricingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex-shrink-0 flex items-center">
-              <Link to="/" style={{ fontFamily: 'monospace' }} className="text-2xl font-bold tracking-widest text-white hover:text-[#4DD9AC] transition-colors">AXON</Link>
+              <Link to="/" style={{ fontFamily: 'monospace' }} className="text-2xl font-bold tracking-widest text-white hover:text-[#4DD9AC] transition-colors">CARGOFY</Link>
             </div>
             <div className="hidden md:flex items-center space-x-8">
               <Link to="/product" className="text-[#94A3B8] hover:text-white transition-colors text-sm font-medium">Platform</Link>
@@ -141,7 +141,7 @@ export const PricingPage: React.FC = () => {
                   { feature: "IoT devices", s: "2", g: "25", e: "Unlimited" },
                   { feature: "Alert channels", s: "Push only", g: "Push + WhatsApp", e: "All channels" },
                   { feature: "Live tracking", s: "✅", g: "✅", e: "✅" },
-                  { feature: "Risk engine", s: "Basic (manual)", g: "✅ AI-powered", e: "✅ AI-powered", highlightGrowth: true },
+                  { feature: "Risk engine", s: "Basic (manual)", g: <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-[#4DD9AC] shrink-0" /> AI-powered</div>, e: <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-[#4DD9AC] shrink-0" /> AI-powered</div>, highlightGrowth: true },
                   { feature: "IoT Simulator", s: "✅", g: "✅", e: "✅" },
                   { feature: "Spoilage prediction", s: "❌", g: "✅", e: "✅" },
                   { feature: "Analytics", s: "Basic", g: "Full 5-tab", e: "Custom reports", highlightGrowth: true },
@@ -197,12 +197,12 @@ export const PricingPage: React.FC = () => {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              { icon: '📊', name: 'Advanced Analytics Pack', price: '₹2,999/mo', desc: 'Custom dashboards, raw data export, BI tool integration' },
-              { icon: '📡', name: 'IoT Hardware Pairing', price: '₹499/device/mo', desc: 'Sensor provisioning + remote diagnostics + replacement SLA' },
-              { icon: '🏭', name: 'Cold Hub Network Access', price: '₹1,999/mo', desc: 'Priority booking at 40+ partner cold hubs across India' },
-              { icon: '🔔', name: 'WhatsApp Premium Alerts', price: '₹1,499/mo', desc: 'Unlimited WhatsApp messages + read receipts + driver ack tracking' },
-              { icon: '📋', name: 'Compliance Suite', price: '₹3,999/mo', desc: 'Automated compliance reports + e-signature + audit-ready export' },
-              { icon: '🛣️', name: 'Route Intelligence', price: '₹2,499/mo', desc: 'AI route optimization + traffic-aware ETA + alternate route auto-suggest' }
+              { icon: <BarChart3 className="text-[#4DD9AC]"/>, name: 'Advanced Analytics Pack', price: '₹2,999/mo', desc: 'Custom dashboards, raw data export, BI tool integration' },
+              { icon: <Radio className="text-[#4DD9AC]"/>, name: 'IoT Hardware Pairing', price: '₹499/device/mo', desc: 'Sensor provisioning + remote diagnostics + replacement SLA' },
+              { icon: <Building2 className="text-[#4DD9AC]"/>, name: 'Cold Hub Network Access', price: '₹1,999/mo', desc: 'Priority booking at 40+ partner cold hubs across India' },
+              { icon: <Bell className="text-[#4DD9AC]"/>, name: 'WhatsApp Premium Alerts', price: '₹1,499/mo', desc: 'Unlimited WhatsApp messages + read receipts + driver ack tracking' },
+              { icon: <FileText className="text-[#4DD9AC]"/>, name: 'Compliance Suite', price: '₹3,999/mo', desc: 'Automated compliance reports + e-signature + audit-ready export' },
+              { icon: <Map className="text-[#4DD9AC]"/>, name: 'Route Intelligence', price: '₹2,499/mo', desc: 'AI route optimization + traffic-aware ETA + alternate route auto-suggest' }
             ].map((addon, i) => (
               <div key={i} className="border border-[#1E293B] rounded-xl p-6 bg-[#080B12] hover:border-[#4DD9AC]/50 transition-colors">
                 <div className="flex justify-between items-start mb-4">
@@ -226,7 +226,7 @@ export const PricingPage: React.FC = () => {
             <div className="p-10 md:w-1/2 border-b md:border-b-0 md:border-r border-[#1E293B]">
               <div className="flex items-center gap-3 mb-8">
                 <Calculator className="w-6 h-6 text-[#4DD9AC]" />
-                <h2 style={{ fontFamily: FONTS.display }} className="text-2xl font-bold text-white">Calculate Your Axon ROI</h2>
+                <h2 style={{ fontFamily: FONTS.display }} className="text-2xl font-bold text-white">Calculate Your Cargofy ROI</h2>
               </div>
 
               <div className="space-y-8">
@@ -262,7 +262,7 @@ export const PricingPage: React.FC = () => {
 
             {/* Output Side */}
             <div className="p-10 md:w-1/2 bg-[#111622] flex flex-col justify-center">
-              <h3 className="text-sm font-bold text-[#94A3B8] uppercase tracking-wider mb-8">Your Estimated Results With Axon</h3>
+              <h3 className="text-sm font-bold text-[#94A3B8] uppercase tracking-wider mb-8">Your Estimated Results With Cargofy</h3>
               
               <div className="space-y-4 mb-10">
                 <div className="flex justify-between items-center">
@@ -270,7 +270,7 @@ export const PricingPage: React.FC = () => {
                   <span className="text-white font-mono">₹ {currentLoss.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-[#94A3B8]">Expected loss after Axon:</span>
+                  <span className="text-[#94A3B8]">Expected loss after Cargofy:</span>
                   <span className="text-[#4DD9AC] font-mono">₹ {expectedLoss.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t border-[#1E293B]">
@@ -278,7 +278,7 @@ export const PricingPage: React.FC = () => {
                   <span className="text-[#4DD9AC] font-bold font-mono text-xl">₹ {monthlySavings.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-[#64748B]">Axon cost (Growth plan):</span>
+                  <span className="text-[#64748B]">Cargofy cost (Growth plan):</span>
                   <span className="text-[#64748B] font-mono">- ₹ {growthCost.toLocaleString()}</span>
                 </div>
               </div>
@@ -334,7 +334,7 @@ export const PricingPage: React.FC = () => {
             Not sure which plan is right?
           </h2>
           <p className="text-xl text-[#94A3B8] mb-12 max-w-2xl mx-auto leading-relaxed">
-            Talk to our team. We'll show you exactly how Axon maps to your cold chain operation — and what you'd save.
+            Talk to our team. We'll show you exactly how Cargofy maps to your cold chain operation — and what you'd save.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-6">
             <Link to="/signup" className="bg-transparent border border-[#1E293B] text-white px-8 py-4 rounded-md font-bold text-lg hover:bg-[#111622] transition-colors">
@@ -352,7 +352,7 @@ export const PricingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-12 mb-16">
             <div className="col-span-2 md:col-span-1">
-              <div style={{ fontFamily: 'monospace' }} className="text-2xl font-bold tracking-widest text-white mb-6">AXON</div>
+              <div style={{ fontFamily: 'monospace' }} className="text-2xl font-bold tracking-widest text-white mb-6">CARGOFY</div>
             </div>
             <div>
               <h4 className="text-white font-bold mb-6 uppercase tracking-wider text-sm">Platform</h4>
@@ -389,7 +389,7 @@ export const PricingPage: React.FC = () => {
             </div>
           </div>
           <div className="pt-8 border-t border-[#1E293B] flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-[#64748B] text-sm">© 2024 Axon Smart Supply Chain. Built in India 🇮🇳.</p>
+            <p className="text-[#64748B] text-sm">© 2024 Cargofy Smart Supply Chain. Built in India.</p>
             <div className="flex gap-6 text-[#64748B]">
               <a href="#" className="hover:text-white transition-colors text-sm">Twitter/X</a>
               <a href="#" className="hover:text-white transition-colors text-sm">LinkedIn</a>

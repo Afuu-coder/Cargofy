@@ -17,8 +17,7 @@ from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.models.models import Alert, RiskEvent, Shipment, SensorReading
-from app.services import firebase_rtdb
+from app.models.models import Alert, RiskEvent, Shipment, SensorReading, AIActionModel
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -78,7 +77,6 @@ def _compute_stats(db: Session) -> NetworkStats:
         watchlist_count=watch, critical_count=crit, loss_prevented_today_inr=loss,
         on_time_rate_7d=otr, refreshed_at=datetime.utcnow().isoformat() + "Z")
     _stats_cache.update(data=stats, expires=now + 30)
-    firebase_rtdb.push_network_stats(stats.model_dump())
     return stats
 
 def _exceptions(db: Session) -> List[ExceptionItem]:
@@ -120,17 +118,17 @@ def _journey(db: Session, limit: int = 50) -> Dict[str, List[ShipmentBrief]]:
             vehicle_number=s.vehicle_number))
     return dict(stages)
 
-def _parse_ai(raw: list) -> List[AIAction]:
-    return [AIAction(id=a.get("id",""), shipment_id=a.get("shipment_id",""),
-        message=a.get("message",""), confidence=a.get("confidence",0),
-        action_type=a.get("action_type","GENERAL"), generated_at=a.get("generated_at"))
-        for a in raw if isinstance(a, dict)]
+def _get_ai_actions(db: Session) -> List[AIAction]:
+    actions = db.query(AIActionModel).order_by(desc(AIActionModel.generated_at)).limit(10).all()
+    return [AIAction(id=a.id, shipment_id=a.shipment_id, message=a.message,
+        confidence=float(a.confidence), action_type=a.action_type, generated_at=a.generated_at)
+        for a in actions]
 
 @router.get("/snapshot", response_model=ControlTowerSnapshot, summary="Full Control Tower state")
 def get_snapshot(db: Session = Depends(get_db)):
     return ControlTowerSnapshot(network_stats=_compute_stats(db),
         exception_banner=_exceptions(db), journey_board=_journey(db),
-        ai_actions=_parse_ai(firebase_rtdb.get_ai_actions()))
+        ai_actions=_get_ai_actions(db))
 
 @router.get("/network-stats", response_model=NetworkStats, summary="6 KPI chips (30s cache)")
 def get_network_stats(db: Session = Depends(get_db)):
@@ -144,6 +142,6 @@ def get_exception_banner(db: Session = Depends(get_db)):
 def get_journey_board(limit: int = Query(50, ge=1, le=200), db: Session = Depends(get_db)):
     return _journey(db, limit)
 
-@router.get("/ai-actions", response_model=List[AIAction], summary="AI suggestions from RTDB")
-def get_ai_actions_endpoint():
-    return _parse_ai(firebase_rtdb.get_ai_actions())
+@router.get("/ai-actions", response_model=List[AIAction], summary="AI suggestions from DB")
+def get_ai_actions_endpoint(db: Session = Depends(get_db)):
+    return _get_ai_actions(db)

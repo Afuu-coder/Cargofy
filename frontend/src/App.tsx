@@ -14,22 +14,24 @@ import { LoginPage }        from './pages/Login';
 import { SignupPage }       from './pages/Signup';
 
 /* ── Cargofy Command Hub pages ──────────────────────────────────────────────── */
-import { ControlTower }         from './pages/axon/ControlTower';
-import { ActiveShipments }      from './pages/axon/ActiveShipments';
-import { AlertsCenter }         from './pages/axon/AlertsCenter';
-import { AxonAnalytics }        from './pages/axon/AxonAnalytics';
-import { CreateShipmentBasics } from './pages/axon/CreateShipmentBasics';
-import { CreateShipmentReview } from './pages/axon/CreateShipmentReview';
-import { FleetAndDrivers }      from './pages/axon/FleetAndDrivers';
-import { IoTSimulator }         from './pages/axon/IoTSimulator';
-import { LiveTracking }         from './pages/axon/LiveTracking';
-import { RiskInterventions }    from './pages/axon/RiskInterventions';
-import { ShipmentDetailAxon }   from './pages/axon/ShipmentDetailAxon';
-import { ShipmentLaunched }     from './pages/axon/ShipmentLaunched';
-import { Fleet3DView }          from './pages/axon/Fleet3DView';
+import { ControlTower }         from './pages/dashboard/ControlTower';
+import { ActiveShipments }      from './pages/dashboard/ActiveShipments';
+import { AlertsCenter }         from './pages/dashboard/AlertsCenter';
+import { CargofyAnalytics }     from './pages/dashboard/CargofyAnalytics';
+import { CreateShipmentBasics } from './pages/dashboard/CreateShipmentBasics';
+import { CreateShipmentReview } from './pages/dashboard/CreateShipmentReview';
+import { FleetAndDrivers }      from './pages/dashboard/FleetAndDrivers';
+import { IoTSimulator }         from './pages/dashboard/IoTSimulator';
+import { LiveTracking }         from './pages/dashboard/LiveTracking';
+import { RiskInterventions }    from './pages/dashboard/RiskInterventions';
+import { ShipmentDetail }       from './pages/dashboard/ShipmentDetail';
+import { ShipmentLaunched }     from './pages/dashboard/ShipmentLaunched';
+import { Fleet3DView }          from './pages/dashboard/Fleet3DView';
 
 /* ── Auth guard ──────────────────────────────────────────────────────────────── */
-const isAuthed = () => localStorage.getItem('cargofy_authed') === 'true';
+// cargofy_authed is set by Login/Signup on successful Supabase auth.
+// On signOut() it gets cleared. This is a quick sync check.
+export const isAuthed = () => localStorage.getItem('cargofy_authed') === 'true';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   if (!isAuthed()) return <Navigate to="/login" replace />;
@@ -76,8 +78,8 @@ function App() {
         <Route path="/shipments"              element={<ProtectedRoute><ActiveShipments /></ProtectedRoute>} />
         <Route path="/alerts-center"          element={<ProtectedRoute><AlertsCenter /></ProtectedRoute>} />
         <Route path="/alerts"                 element={<ProtectedRoute><AlertsCenter /></ProtectedRoute>} />
-        <Route path="/axon-analytics"         element={<ProtectedRoute><AxonAnalytics /></ProtectedRoute>} />
-        <Route path="/analytics"              element={<ProtectedRoute><AxonAnalytics /></ProtectedRoute>} />
+        <Route path="/cargofy-analytics"      element={<ProtectedRoute><CargofyAnalytics /></ProtectedRoute>} />
+        <Route path="/analytics"              element={<ProtectedRoute><CargofyAnalytics /></ProtectedRoute>} />
         <Route path="/create-shipment"        element={<ProtectedRoute><CreateShipmentBasics /></ProtectedRoute>} />
         <Route path="/create-shipment/review" element={<ProtectedRoute><CreateShipmentReview /></ProtectedRoute>} />
         <Route path="/shipments/new"          element={<ProtectedRoute><CreateShipmentBasics /></ProtectedRoute>} />
@@ -87,8 +89,8 @@ function App() {
         <Route path="/live-tracking"          element={<ProtectedRoute><LiveTracking /></ProtectedRoute>} />
         <Route path="/map"                    element={<ProtectedRoute><LiveTracking /></ProtectedRoute>} />
         <Route path="/risk"                   element={<ProtectedRoute><RiskInterventions /></ProtectedRoute>} />
-        <Route path="/shipment-detail"        element={<ProtectedRoute><ShipmentDetailAxon /></ProtectedRoute>} />
-        <Route path="/shipments/:id"          element={<ProtectedRoute><ShipmentDetailAxon /></ProtectedRoute>} />
+        <Route path="/shipment-detail"        element={<ProtectedRoute><ShipmentDetail /></ProtectedRoute>} />
+        <Route path="/shipments/:id"          element={<ProtectedRoute><ShipmentDetail /></ProtectedRoute>} />
         <Route path="/shipment-launched"      element={<ProtectedRoute><ShipmentLaunched /></ProtectedRoute>} />
         <Route path="/fleet-3d"               element={<ProtectedRoute><Fleet3DView /></ProtectedRoute>} />
         <Route path="/3d-map"                 element={<ProtectedRoute><Fleet3DView /></ProtectedRoute>} />

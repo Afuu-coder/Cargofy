@@ -57,17 +57,11 @@ def _pubsub():
         return None
 
 
-def _firestore():
-    try:
-        from google.cloud import firestore
-        return firestore.Client(project=settings.VERTEX_AI_PROJECT)
-    except Exception:
-        return None
+
 
 
 def _rtdb_ref(path: str):
-    from app.services.firebase_rtdb import _get_ref
-    return _get_ref(path)
+    return None
 
 
 # ── Flow A: Emit telemetry ────────────────────────────────────────────────────

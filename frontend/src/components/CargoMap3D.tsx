@@ -148,7 +148,7 @@ export function CargoMap3D({
       }
     `;
     document.head.appendChild(style);
-    return () => document.head.removeChild(style);
+    return () => { document.head.removeChild(style); };
   }, []);
 
   // ── Init Mapbox map ───────────────────────────────────────────────────────

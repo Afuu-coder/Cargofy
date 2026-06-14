@@ -8,15 +8,18 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 
 from app.core.config import settings
 
-# PostgreSQL-specific options (not compatible with SQLite)
-_pg_args = {"options": "-c search_path=public"} if settings.DATABASE_URL.startswith("postgresql") else {}
+# PostgreSQL connect args — sslmode handled via URL query string for Supabase
+_pg_connect_args = {}
+if settings.DATABASE_URL.startswith("postgresql"):
+    # Supabase requires SSL; sslmode=require is in the URL already
+    _pg_connect_args = {"options": "-c search_path=public"}
 
 engine = create_engine(
     settings.DATABASE_URL,
-    pool_size=10,
-    max_overflow=20,
-    pool_pre_ping=True,       # drop stale connections automatically
-    connect_args=_pg_args,
+    pool_size=5,
+    max_overflow=10,
+    pool_pre_ping=True,
+    connect_args=_pg_connect_args,
 )
 
 # ── Session factory ───────────────────────────────────────────────────────────

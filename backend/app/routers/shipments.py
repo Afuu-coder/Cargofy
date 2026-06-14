@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.models.models import Alert, RiskEvent, Shipment, SensorReading, User
 from app.schemas.schemas import ShipmentCreate, ShipmentResponse, RiskSummary
-from app.services import firebase_rtdb
+from app.core.security import get_current_user
 from app.services.pubsub_service import publish_network_event
 
 router = APIRouter()
@@ -31,32 +31,19 @@ def _generate_shipment_code() -> str:
     return f"SHIP-{today}-{suffix}"
 
 
-def _ensure_demo_user(db: Session) -> User:
-    """
-    For the hackathon demo, create/return a default user so callers don't need
-    to handle authentication. Will be replaced by JWT auth in production.
-    """
-    demo_phone = "+919999999999"
-    user = db.query(User).filter(User.phone == demo_phone).first()
-    if not user:
-        user = User(
-            name="Demo Owner",
-            phone=demo_phone,
-            business_name="Axon Demo MSME",
-            business_type="dairy",
-        )
-        db.add(user)
-        db.commit()
-        db.refresh(user)
-    return user
-
-
 def _enrich_with_risk(shipment: Shipment, db: Session) -> ShipmentResponse:
-    """Build ShipmentResponse, attaching most-recent risk event data."""
+    """Build ShipmentResponse, attaching most-recent risk event data and current location."""
     latest_risk: RiskEvent = (
         db.query(RiskEvent)
         .filter(RiskEvent.shipment_id == shipment.id)
         .order_by(desc(RiskEvent.triggered_at))
+        .first()
+    )
+    
+    latest_sensor: SensorReading = (
+        db.query(SensorReading)
+        .filter(SensorReading.shipment_id == shipment.id)
+        .order_by(desc(SensorReading.recorded_at))
         .first()
     )
 
@@ -69,6 +56,12 @@ def _enrich_with_risk(shipment: Shipment, db: Session) -> ShipmentResponse:
             time_to_spoil_minutes=latest_risk.time_to_spoil,
             computed_at=latest_risk.triggered_at,
         )
+        
+    if latest_sensor and latest_sensor.current_lat is not None and latest_sensor.current_lng is not None:
+        response.current_location = {
+            "lat": float(latest_sensor.current_lat),
+            "lng": float(latest_sensor.current_lng)
+        }
 
     return response
 
@@ -84,6 +77,7 @@ def _enrich_with_risk(shipment: Shipment, db: Session) -> ShipmentResponse:
 def create_shipment(
     payload: ShipmentCreate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Create a new cold-chain shipment record.
@@ -91,10 +85,9 @@ def create_shipment(
     - **product_type**: milk / fish / frozen / produce / pharma / fruits / vegetables
     - **shipment_code** is auto-generated (SHIP-YYYYMMDD-XXXX)
     """
-    owner = _ensure_demo_user(db)
 
     shipment = Shipment(
-        user_id=owner.id,
+        user_id=current_user.id,
         shipment_code=_generate_shipment_code(),
         product_type=payload.product_type.lower(),
         product_qty=payload.product_qty,
@@ -115,17 +108,6 @@ def create_shipment(
     db.commit()
     db.refresh(shipment)
 
-    # Push initial state to Firebase RTDB
-    firebase_rtdb.push_shipment_state(shipment.shipment_code, {
-        "stage": "CREATED",
-        "risk_score": 0,
-        "risk_category": "LOW",
-        "temperature": None,
-        "product_type": shipment.product_type,
-        "origin": shipment.origin,
-        "destination": shipment.destination,
-        "vehicle_number": shipment.vehicle_number,
-    })
     # Publish Pub/Sub event
     publish_network_event("SHIPMENT_CREATED", {
         "shipment_id": str(shipment.id),
@@ -275,13 +257,6 @@ def update_shipment_outcome(
     shipment.status = "completed" if body.outcome == "delivered" else "spoiled"
     db.commit()
 
-    # Remove from active shipments in RTDB (or update stage)
-    if body.outcome == "delivered":
-        firebase_rtdb.remove_shipment(shipment.shipment_code)
-    else:
-        firebase_rtdb.push_shipment_state(shipment.shipment_code, {
-            "stage": "SPOILED",
-        })
     publish_network_event("SHIPMENT_OUTCOME", {
         "shipment_id": str(shipment.id),
         "outcome": body.outcome,

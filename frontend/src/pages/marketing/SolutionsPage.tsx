@@ -24,7 +24,7 @@ const COLORS = {
 const INDUSTRY_DATA: Record<string, any> = {
   dairy: {
     title: "Cold Chain Intelligence Built for Dairy.",
-    subtitle: "Milk, paneer, curd, butter — every dairy SKU has a tight temperature window and a short shelf life. Axon watches both.",
+    subtitle: "Milk, paneer, curd, butter — every dairy SKU has a tight temperature window and a short shelf life. Cargofy watches both.",
     problemHeadline: "Dairy's Cold Chain Is the Most Unforgiving in FMCG.",
     problemPoints: [
       "Safe window: 2°C–6°C — just 4 degrees",
@@ -63,7 +63,7 @@ const INDUSTRY_DATA: Record<string, any> = {
       {
         name: "Alerts — Dairy SOP",
         points: [
-          "Pre-loaded WhatsApp template: \"⚠️ Milk cargo temp: {temp}°C. Safe max 6°C. Check reefer now.\"",
+          "Pre-loaded WhatsApp template: \"[ALERT] Milk cargo temp: {temp}°C. Safe max 6°C. Check reefer now.\"",
           "Auto-escalate to dairy supervisor if unacknowledged in 8 min",
           "\"Night dispatch recommendation\" alert in summer months"
         ]
@@ -81,7 +81,7 @@ const INDUSTRY_DATA: Record<string, any> = {
   },
   seafood: {
     title: "Cold Chain Intelligence Built for Seafood.",
-    subtitle: "From harbour to plate, freshness is everything. Axon ensures perfect temperature and humidity for your catch.",
+    subtitle: "From harbour to plate, freshness is everything. Cargofy ensures perfect temperature and humidity for your catch.",
     problemHeadline: "Seafood Demands More Than Just Temperature Control.",
     problemPoints: [
       "Dual requirement: Strict 0°C–4°C band AND high humidity control",
@@ -118,7 +118,7 @@ const INDUSTRY_DATA: Record<string, any> = {
       {
         name: "Alerts — Seafood SOP",
         points: [
-          "Pre-loaded template for humidity: \"💧 Humidity at {humidity}%. Seal all containers.\"",
+          "Pre-loaded template for humidity: \"[HUMIDITY WARNING] Humidity at {humidity}%. Seal all containers.\"",
           "Escalation to seafood buyer if delivery delay >45 min",
           "\"Accept or reject delivery\" flag sent to destination hub on HIGH risk"
         ]
@@ -135,7 +135,7 @@ const INDUSTRY_DATA: Record<string, any> = {
   },
   pharma: {
     title: "Zero-Tolerance Cold Chain for Pharma.",
-    subtitle: "Vaccines, biologics, and active ingredients require absolute precision. Axon delivers GDP-compliant peace of mind.",
+    subtitle: "Vaccines, biologics, and active ingredients require absolute precision. Cargofy delivers GDP-compliant peace of mind.",
     problemHeadline: "In Pharma, a 1-Degree Excursion means Quarantined Cargo.",
     problemPoints: [
       "Absolute strict bands: 2–8°C or -20°C with zero tolerance",
@@ -215,7 +215,7 @@ export const SolutionsPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex-shrink-0 flex items-center">
-              <Link to="/" style={{ fontFamily: 'monospace' }} className="text-2xl font-bold tracking-widest text-white hover:text-[#4DD9AC] transition-colors">AXON</Link>
+              <Link to="/" style={{ fontFamily: 'monospace' }} className="text-2xl font-bold tracking-widest text-white hover:text-[#4DD9AC] transition-colors">CARGOFY</Link>
             </div>
             <div className="hidden md:flex items-center space-x-8">
               <Link to="/product" className="text-[#94A3B8] hover:text-white transition-colors text-sm font-medium">Platform</Link>
@@ -258,7 +258,7 @@ export const SolutionsPage: React.FC = () => {
         <div className="absolute inset-0 z-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 50% 0%, #4DD9AC 1px, transparent 1px)', backgroundSize: '60px 60px' }}></div>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <div className="inline-flex items-center gap-2 bg-[#111622] border border-[#1E293B] text-[#4DD9AC] px-4 py-2 rounded-full font-mono text-sm mb-8">
-            <data.icon className="w-4 h-4" /> AXON FOR {industryKey.toUpperCase()}
+            <data.icon className="w-4 h-4" /> CARGOFY FOR {industryKey.toUpperCase()}
           </div>
           <h1 style={{ fontFamily: FONTS.display }} className="text-4xl md:text-6xl font-bold tracking-tight text-white mb-6 leading-tight">
             {data.title.split('Built for ')[0]}<br/>
@@ -300,13 +300,13 @@ export const SolutionsPage: React.FC = () => {
               </ul>
             </div>
 
-            {/* How Axon Solves It */}
+            {/* How Cargofy Solves It */}
             <div className="p-8 md:p-12 border border-[#4DD9AC]/30 rounded-2xl bg-[#111622] relative overflow-hidden shadow-[0_0_50px_rgba(77,217,172,0.05)]">
               <div className="absolute top-0 right-0 p-8 opacity-10">
                 <ShieldCheck className="w-32 h-32 text-[#4DD9AC]" />
               </div>
               <h2 style={{ fontFamily: FONTS.display }} className="text-2xl md:text-3xl font-bold text-white mb-8 relative z-10">
-                How Axon Solves It
+                How Cargofy Solves It
               </h2>
               <ul className="space-y-6 relative z-10">
                 {data.solutions.map((pt: string, i: number) => (
@@ -390,7 +390,7 @@ export const SolutionsPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-12 mb-16">
             <div className="col-span-2 md:col-span-1">
-              <div style={{ fontFamily: 'monospace' }} className="text-2xl font-bold tracking-widest text-white mb-6">AXON</div>
+              <div style={{ fontFamily: 'monospace' }} className="text-2xl font-bold tracking-widest text-white mb-6">CARGOFY</div>
             </div>
             <div>
               <h4 className="text-white font-bold mb-6 uppercase tracking-wider text-sm">Platform</h4>
@@ -425,7 +425,7 @@ export const SolutionsPage: React.FC = () => {
             </div>
           </div>
           <div className="pt-8 border-t border-[#1E293B] flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-[#64748B] text-sm">© 2024 Axon Smart Supply Chain. Built in India 🇮🇳.</p>
+            <p className="text-[#64748B] text-sm">© 2024 Cargofy Smart Supply Chain. Built in India.</p>
           </div>
         </div>
       </footer>

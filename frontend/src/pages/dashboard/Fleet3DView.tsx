@@ -11,6 +11,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CargoMap3D } from '../../components/CargoMap3D';
 import { getShipments, type Shipment } from '../../lib/api';
+import { ArrowLeft, Battery, Thermometer, DoorOpen, Zap, Bot, BellOff, Package, AlertTriangle, ShieldAlert, Link, ArrowRight } from 'lucide-react';
 
 interface AgentEvent {
   event:        string;
@@ -133,8 +134,9 @@ export function Fleet3DView() {
         <button onClick={() => navigate('/dashboard')} style={{
           background: 'none', border: '1px solid #1E2530', color: '#64748B',
           borderRadius: 6, padding: '4px 10px', fontSize: 12, cursor: 'pointer',
+          display: 'flex', alignItems: 'center', gap: 4
         }}>
-          ← Dashboard
+          <ArrowLeft size={12}/> Dashboard
         </button>
 
         {/* Title */}
@@ -166,10 +168,10 @@ export function Fleet3DView() {
         {/* Crisis scenario buttons */}
         <div style={{ display: 'flex', gap: 6 }}>
           {[
-            { label: '⚡ Battery', s: 'battery_failure' },
-            { label: '🌡️ Temp',    s: 'temp_spike' },
-            { label: '🚪 Door',    s: 'door_tamper' },
-            { label: '💥 All',     s: 'combined' },
+            { label: <span style={{display:'flex',alignItems:'center',gap:4}}><Battery size={12}/> Battery</span>, s: 'battery_failure' },
+            { label: <span style={{display:'flex',alignItems:'center',gap:4}}><Thermometer size={12}/> Temp</span>,    s: 'temp_spike' },
+            { label: <span style={{display:'flex',alignItems:'center',gap:4}}><DoorOpen size={12}/> Door</span>,    s: 'door_tamper' },
+            { label: <span style={{display:'flex',alignItems:'center',gap:4}}><Zap size={12}/> All</span>,     s: 'combined' },
           ].map(item => (
             <button key={item.s}
               onClick={() => triggerCrisis(item.s)}
@@ -213,8 +215,9 @@ export function Fleet3DView() {
             borderBottom: '1px solid #1E2530',
             fontSize: 11, fontWeight: 700, color: '#64748B',
             fontFamily: 'monospace', letterSpacing: 1,
+            display: 'flex', alignItems: 'center', gap: 6
           }}>
-            🤖 AGENT ACTIVITY LOG
+            <Bot size={14}/> AGENT ACTIVITY LOG
           </div>
 
           <div style={{ flex: 1, overflow: 'auto', padding: 8 }}>
@@ -223,7 +226,7 @@ export function Fleet3DView() {
                 padding: '24px 12px', textAlign: 'center',
                 fontSize: 11, color: '#334155',
               }}>
-                <div style={{ fontSize: 24, marginBottom: 8 }}>🔇</div>
+                <div style={{ marginBottom: 8, display: 'flex', justifyContent: 'center' }}><BellOff size={24}/></div>
                 No agent events yet.
                 <br />Trigger a crisis scenario to see the AI agent respond in real-time.
               </div>
@@ -242,18 +245,18 @@ export function Fleet3DView() {
                     {event.event.replace(/_/g, ' ')}
                   </div>
                   {event.shipment_id && (
-                    <div style={{ color: '#64748B', fontSize: 10 }}>
-                      📦 {event.shipment_id}
+                    <div style={{ color: '#64748B', fontSize: 10, display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <Package size={10}/> {event.shipment_id}
                     </div>
                   )}
                   {event.risk_score !== undefined && (
-                    <div style={{ color: '#F87171', fontSize: 10 }}>
-                      ⚠️ Risk: {Math.round(event.risk_score * 100)}%
+                    <div style={{ color: '#F87171', fontSize: 10, display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <AlertTriangle size={10}/> Risk: {Math.round(event.risk_score * 100)}%
                     </div>
                   )}
                   {event.urgency && (
-                    <div style={{ color: '#F59E0B', fontSize: 10 }}>
-                      🚨 {event.urgency}
+                    <div style={{ color: '#F59E0B', fontSize: 10, display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <ShieldAlert size={10}/> {event.urgency}
                     </div>
                   )}
                   <div style={{ color: '#334155', fontSize: 9, marginTop: 3 }}>
@@ -271,8 +274,8 @@ export function Fleet3DView() {
             fontSize: 10, color: '#334155',
             fontFamily: 'monospace',
           }}>
-            <div style={{ color: '#4DD9AC', fontWeight: 700, marginBottom: 4 }}>
-              ⛓️ Sepolia Testnet
+            <div style={{ color: '#4DD9AC', fontWeight: 700, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Link size={12}/> Sepolia Testnet
             </div>
             <div>Each trip auto-mints an immutable certificate on Ethereum Sepolia.</div>
             <div style={{ marginTop: 4 }}>
@@ -280,9 +283,9 @@ export function Fleet3DView() {
                 href="https://sepolia.etherscan.io"
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ color: '#6366F1', textDecoration: 'none' }}
+                style={{ color: '#6366F1', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}
               >
-                View on Etherscan →
+                View on Etherscan <ArrowRight size={10}/>
               </a>
             </div>
           </div>

@@ -1,170 +1,210 @@
 """
-Cargofy — Notification Router
-
-Handles outbound notifications:
-  - WhatsApp → CallMeBot (FREE, primary channel)
-  - Firebase Cloud Messaging (FCM) → Push notifications to drivers/dispatchers
-  - Bulk → Broadcast push to all active drivers
-
-Endpoints:
-  POST /notify/whatsapp    -> Send WhatsApp via CallMeBot
-  POST /notify/push        -> Send FCM push notification
-  POST /notify/bulk        -> Bulk push to all active drivers
-  GET  /notify/channels    -> Health check all notification channels
+Cargofy — WhatsApp Alert Router (User-Configured)
+===================================================
+Endpoints for user-configurable WhatsApp alerts:
+  POST /notify/whatsapp-setup   → Save user's phone + CallMeBot API key
+  POST /notify/test-whatsapp    → Send a test message to user's phone  
+  POST /notify/send-alert       → Send a real alert (used by AI agent)
+  GET  /notify/channels         → Health check all channels
 """
 from __future__ import annotations
 
 import logging
-from typing import List, Optional
+import urllib.parse
+import httpx
+from typing import Optional
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from app.core.config import settings
-from app.services.pubsub_service import publish_alert_event
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
+# In-memory store for demo (in production, save to Supabase DB per user)
+_whatsapp_config: dict = {
+    "phone":   settings.CALLMEBOT_PHONE or "",
+    "api_key": settings.CALLMEBOT_API_KEY or "",
+}
 
-# ── Schemas ───────────────────────────────────────────────────────────────────
 
-class WhatsAppRequest(BaseModel):
-    message: str
+# ── Schemas ────────────────────────────────────────────────────────────────────
+
+class WhatsAppSetup(BaseModel):
+    phone:   str   # e.g. +919876543210
+    api_key: str   # CallMeBot API key
+
+class WhatsAppTestRequest(BaseModel):
+    phone:   Optional[str] = None
+    api_key: Optional[str] = None
+
+class WhatsAppAlertRequest(BaseModel):
+    phone:       Optional[str] = None
+    api_key:     Optional[str] = None
+    message:     str
     shipment_id: Optional[str] = None
     alert_id:    Optional[str] = None
 
-class PushRequest(BaseModel):
-    fcm_tokens: List[str]
-    title:    str
-    body:     str
-    data:     Optional[dict] = None
-    priority: str = "high"   # high | normal
 
-class BulkNotifyRequest(BaseModel):
-    title:         str
-    body:          str
-    filter_status: str = "ACTIVE"
-    data:          Optional[dict] = None
+# ── CallMeBot direct sender ────────────────────────────────────────────────────
 
-
-# ── WhatsApp via CallMeBot (PRIMARY channel) ──────────────────────────────────
-
-@router.post("/whatsapp", summary="Send WhatsApp alert via CallMeBot (FREE)")
-async def send_whatsapp(body: WhatsAppRequest):
+async def _send_callmebot(phone: str, api_key: str, message: str) -> dict:
     """
-    Send a WhatsApp message via CallMeBot.
-    Free setup: https://www.callmebot.com/blog/free-api-whatsapp-messages/
-    Requires CALLMEBOT_API_KEY + CALLMEBOT_PHONE in .env
+    Send WhatsApp message via CallMeBot API.
+    Completely free — no credit card needed.
+    Setup: https://www.callmebot.com/blog/free-api-whatsapp-messages/
     """
-    from app.services.callmebot_service import send_whatsapp_callmebot
-    ok = await send_whatsapp_callmebot(body.message)
+    clean_phone = phone.replace("+", "").replace(" ", "").replace("-", "")
+    encoded_msg = urllib.parse.quote(message)
+    url = f"https://api.callmebot.com/whatsapp.php?phone={clean_phone}&text={encoded_msg}&apikey={api_key}"
 
-    if body.alert_id and body.shipment_id:
-        publish_alert_event(
-            alert_id=body.alert_id,
-            shipment_id=body.shipment_id,
-            alert_type="WHATSAPP_SENT",
-            status="sent" if ok else "failed",
-            channel="whatsapp_callmebot",
-            recipient=settings.CALLMEBOT_PHONE or "configured_number",
-        )
-
-    if not ok:
-        raise HTTPException(502, "WhatsApp send failed — check CALLMEBOT_API_KEY in .env")
-
-    return {"ok": True, "channel": "callmebot", "phone": settings.CALLMEBOT_PHONE}
-
-
-# ── FCM Push ─────────────────────────────────────────────────────────────────
-
-@router.post("/push", summary="Send FCM push notification")
-async def send_push(body: PushRequest):
-    """
-    Send Firebase Cloud Messaging push to one or many devices.
-    Used for:
-      - CRITICAL risk alerts  -> red banner on driver app
-      - Stage updates         -> new stop confirmation
-      - Ops alerts            -> high-risk shipment warnings
-    """
-    results = []
-    for token in body.fcm_tokens:
-        result = await _send_fcm(token, body.title, body.body, body.data, body.priority)
-        results.append({"token": token[:20] + "...", "ok": result.get("ok", False)})
-
-    sent   = sum(1 for r in results if r["ok"])
-    failed = len(results) - sent
-    return {"sent": sent, "failed": failed, "results": results}
-
-
-async def _send_fcm(
-    token: str, title: str, body: str,
-    data: Optional[dict] = None, priority: str = "high",
-) -> dict:
-    """Send a single FCM push notification via Firebase Admin SDK."""
     try:
-        import firebase_admin.messaging as messaging
-        msg = messaging.Message(
-            notification=messaging.Notification(title=title, body=body),
-            data={k: str(v) for k, v in (data or {}).items()},
-            token=token,
-            android=messaging.AndroidConfig(
-                priority=priority,
-                notification=messaging.AndroidNotification(
-                    sound="default", priority="high",
-                ),
-            ),
-            apns=messaging.APNSConfig(
-                payload=messaging.APNSPayload(
-                    aps=messaging.Aps(sound="default", badge=1)
-                )
-            ),
-        )
-        resp = messaging.send(msg)
-        logger.info("FCM sent: %s", resp)
-        return {"ok": True, "message_id": resp}
-    except Exception as exc:
-        logger.warning("FCM push failed for token ...%s: %s", token[-8:], exc)
-        return {"ok": False, "error": str(exc)}
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            resp = await client.get(url)
+            if resp.status_code == 200 and "message queued" in resp.text.lower():
+                return {"ok": True, "response": resp.text[:100]}
+            elif resp.status_code == 200:
+                return {"ok": True, "response": resp.text[:100]}
+            else:
+                return {"ok": False, "error": f"HTTP {resp.status_code}: {resp.text[:200]}"}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
 
 
-# ── Bulk notify ───────────────────────────────────────────────────────────────
+# ── Setup endpoint ─────────────────────────────────────────────────────────────
 
-@router.post("/bulk", summary="Bulk push to all drivers matching a filter")
-async def bulk_notify(body: BulkNotifyRequest):
+@router.post("/whatsapp-setup", summary="Save user's WhatsApp phone + CallMeBot API key")
+async def setup_whatsapp(body: WhatsAppSetup):
     """
-    Send push notifications to all drivers with a given status.
-    E.g.: broadcast a network-wide weather warning to all ACTIVE drivers.
+    Save user's WhatsApp number and CallMeBot API key.
+    These will be used for all future AI agent alerts.
+    
+    Setup CallMeBot (2 min, FREE):
+    1. Add +34 644 59 74 21 to WhatsApp contacts as 'CallMeBot'
+    2. Send: I allow callmebot to send me messages
+    3. You receive your API key via WhatsApp
     """
-    from app.routers.fleet import _list_drivers
-    drivers = _list_drivers(status=body.filter_status)
+    phone = body.phone.strip()
+    if not phone.startswith("+"):
+        raise HTTPException(400, detail="Phone must be in E.164 format e.g. +919876543210")
+    
+    api_key = body.api_key.strip()
+    if not api_key:
+        raise HTTPException(400, detail="CallMeBot API key is required")
+    
+    # Save to in-memory config (and optionally to DB)
+    _whatsapp_config["phone"]   = phone
+    _whatsapp_config["api_key"] = api_key
+    
+    logger.info("[WhatsApp] Config updated — phone: %s", phone[:6] + "****")
+    
+    return {
+        "ok":      True,
+        "message": "WhatsApp configuration saved successfully!",
+        "phone":   phone[:4] + "****" + phone[-3:],
+    }
 
-    tokens = [d.get("fcm_token") for d in drivers if d.get("fcm_token")]
-    if not tokens:
-        return {"sent": 0, "reason": "No drivers with FCM tokens found"}
 
-    results = []
-    for token in tokens:
-        r = await _send_fcm(token, body.title, body.body, body.data)
-        results.append(r)
+# ── Test endpoint ──────────────────────────────────────────────────────────────
 
-    sent = sum(1 for r in results if r.get("ok"))
-    return {"sent": sent, "total_drivers": len(drivers), "tokens_found": len(tokens)}
+@router.post("/test-whatsapp", summary="Send a test WhatsApp message to verify setup")
+async def test_whatsapp(body: WhatsAppTestRequest):
+    """
+    Send a test WhatsApp message to verify CallMeBot setup is working.
+    Uses provided credentials or falls back to saved config.
+    """
+    phone   = body.phone   or _whatsapp_config.get("phone", "")
+    api_key = body.api_key or _whatsapp_config.get("api_key", "")
+    
+    if not phone or not api_key:
+        raise HTTPException(400, detail={
+            "error":   "WhatsApp not configured",
+            "message": "Please set phone and API key via /notify/whatsapp-setup",
+            "guide":   "https://www.callmebot.com/blog/free-api-whatsapp-messages/"
+        })
+    
+    test_msg = (
+        "✅ *CARGOFY Test Alert*\n"
+        "━━━━━━━━━━━━━━━━━━\n"
+        "Congratulations! Your WhatsApp alerts are working!\n\n"
+        "You will now receive real-time alerts when:\n"
+        "🔴 CRITICAL risk detected\n"
+        "🤖 AI agent reroutes a shipment\n"
+        "🌡️ Temperature breach occurs\n"
+        "━━━━━━━━━━━━━━━━━━\n"
+        "_Powered by Cargofy Autonomous AI_"
+    )
+    
+    result = await _send_callmebot(phone, api_key, test_msg)
+    
+    if not result["ok"]:
+        raise HTTPException(502, detail={
+            "error":       "WhatsApp send failed",
+            "details":     result.get("error"),
+            "troubleshoot": [
+                "Make sure you sent 'I allow callmebot to send me messages' to +34 644 59 74 21",
+                "Verify your API key is correct",
+                "Phone number must be in E.164 format: +919876543210"
+            ]
+        })
+    
+    return {
+        "ok":      True,
+        "message": f"Test WhatsApp sent successfully to {phone[:4]}****{phone[-3:]}!",
+        "phone":   phone[:4] + "****" + phone[-3:],
+    }
 
 
-# ── Channel health check ──────────────────────────────────────────────────────
+# ── Alert send endpoint ────────────────────────────────────────────────────────
+
+@router.post("/send-alert", summary="Send WhatsApp alert (used by AI agent)")  
+async def send_alert(body: WhatsAppAlertRequest):
+    """
+    Send a real WhatsApp alert. Called by the AI rerouting agent.
+    Uses saved config or overrides from request body.
+    """
+    phone   = body.phone   or _whatsapp_config.get("phone", "")
+    api_key = body.api_key or _whatsapp_config.get("api_key", "")
+    
+    if not phone or not api_key:
+        return {"ok": False, "reason": "WhatsApp not configured — use /notify/whatsapp-setup"}
+    
+    result = await _send_callmebot(phone, api_key, body.message)
+    logger.info("[WhatsApp] Alert sent → %s: %s", phone[:6]+"****", result.get("ok"))
+    return {"ok": result["ok"], "phone": phone[:4]+"****"+phone[-3:]}
+
+
+# ── Get current config ─────────────────────────────────────────────────────────
+
+@router.get("/whatsapp-config", summary="Get current WhatsApp configuration status")
+def get_whatsapp_config():
+    """Returns whether WhatsApp is configured (without exposing the actual key)."""
+    phone   = _whatsapp_config.get("phone", "")
+    api_key = _whatsapp_config.get("api_key", "")
+    configured = bool(phone and api_key)
+    return {
+        "configured": configured,
+        "phone":      (phone[:4] + "****" + phone[-3:]) if configured else None,
+        "setup_guide": {
+            "step1": "Add +34 644 59 74 21 to WhatsApp as 'CallMeBot'",
+            "step2": "Send: I allow callmebot to send me messages",
+            "step3": "You receive API key via WhatsApp",
+            "step4": "Enter phone + API key in Cargofy settings",
+        }
+    }
+
+
+# ── Channel health check ───────────────────────────────────────────────────────
 
 @router.get("/channels", summary="Notification channel health check")
 def channel_health():
-    """Returns configuration status for each notification channel."""
+    phone   = _whatsapp_config.get("phone", settings.CALLMEBOT_PHONE or "")
+    api_key = _whatsapp_config.get("api_key", settings.CALLMEBOT_API_KEY or "")
     return {
         "whatsapp_callmebot": {
-            "configured": bool(settings.CALLMEBOT_API_KEY and settings.CALLMEBOT_PHONE),
-            "phone":       settings.CALLMEBOT_PHONE or None,
-            "status":      "ok" if settings.CALLMEBOT_API_KEY else "not_configured — set CALLMEBOT_API_KEY in .env",
-        },
-        "fcm_push": {
-            "configured": True,   # Uses Firebase Admin SDK — available if service account is set
-            "status":     "ok",
+            "configured": bool(phone and api_key),
+            "phone":      (phone[:4] + "****" + phone[-3:]) if phone else None,
+            "status":     "ready" if (phone and api_key) else "not_configured",
         },
     }

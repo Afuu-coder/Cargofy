@@ -31,12 +31,7 @@ _ESCALATION_CHAIN = [
 ]
 
 
-def _firestore():
-    try:
-        from google.cloud import firestore
-        return firestore.Client(project=settings.VERTEX_AI_PROJECT)
-    except Exception:
-        return None
+
 
 
 async def schedule_escalation(
@@ -137,7 +132,6 @@ async def fire_escalation(
     3. Schedule next escalation in chain
     4. If READ → cancel (log success)
     """
-    from app.services import firebase_rtdb
     from app.services.pubsub_service import publish_network_event
     from app.services.whatsapp_service import send_whatsapp_alert
 
@@ -177,13 +171,7 @@ async def fire_escalation(
         except Exception as e:
             logger.warning("Firestore escalation write failed: %s", e)
 
-    # Push to Firebase RTDB
-    firebase_rtdb.push_ai_action(shipment_code, {
-        "escalation_id":  esc_id,
-        "escalated_to":   next_recipient,
-        "escalated_at":   int(time.time() * 1000),
-        "ack_status":     "PENDING",
-    })
+    # Firebase RTDB push removed
 
     # Pub/Sub escalation-triggered
     publish_network_event("ESCALATION_TRIGGERED", {
@@ -219,7 +207,7 @@ async def acknowledge_alert(shipment_code: str, alert_id: str) -> dict:
     Updates Firestore ack_status → READ.
     Cancels pending Cloud Tasks escalations (best-effort).
     """
-    from app.services import firebase_rtdb
+    pass
 
     fs = _firestore()
     if fs:
@@ -231,7 +219,7 @@ async def acknowledge_alert(shipment_code: str, alert_id: str) -> dict:
         except Exception as e:
             logger.warning("Firestore ack update failed: %s", e)
 
-    firebase_rtdb.push_ai_action(shipment_code, {"ack_status": "READ"})
+    # Firebase RTDB push removed
 
     logger.info("[Escalation] Alert %s acknowledged for shipment %s", alert_id, shipment_code)
     return {"success": True, "ack_status": "READ"}

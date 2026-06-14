@@ -274,7 +274,7 @@ def _run_fallback_agent() -> List[Dict[str, Any]]:
 # ── Public async entry point ──────────────────────────────────────────────────
 
 async def run_control_tower_agent() -> List[Dict[str, Any]]:
-    """Run the ControlTowerAgent and push results to Firebase RTDB."""
+    """Run the ControlTowerAgent and push results to PostgreSQL."""
     loop = asyncio.get_event_loop()
 
     # Try ADK first, then fallback
@@ -288,8 +288,30 @@ async def run_control_tower_agent() -> List[Dict[str, Any]]:
     except Exception:
         actions = await loop.run_in_executor(None, _run_fallback_agent)
 
-    # Push to Firebase RTDB
-    from app.services.firebase_rtdb import push_ai_actions
-    push_ai_actions(actions)
+    # Push to PostgreSQL ai_actions table
+    from app.db.session import SessionLocal
+    from app.models.models import AIActionModel
+    
+    db = SessionLocal()
+    try:
+        # Clear old actions
+        db.query(AIActionModel).delete()
+        
+        # Insert new actions
+        for act in actions:
+            db.add(AIActionModel(
+                id=act.get("id"),
+                shipment_id=act.get("shipment_id"),
+                message=act.get("message"),
+                confidence=act.get("confidence", 0),
+                action_type=act.get("action_type"),
+                generated_at=act.get("generated_at")
+            ))
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.error("Failed to save AI actions to DB: %s", e)
+    finally:
+        db.close()
 
     return actions

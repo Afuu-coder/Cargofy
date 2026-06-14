@@ -55,7 +55,7 @@ async def run_agent():
     1. Assess critical shipments, unacked alerts
     2. Generate 3-5 actionable suggestions via ADK + Gemini
     3. Polish output with Gemma 2 for operational language
-    4. Push results to Firebase RTDB /ai_action_queue
+    4. Push results to PostgreSQL (ai_actions table)
     """
     start = time.time()
 
@@ -76,11 +76,11 @@ async def run_agent():
 @router.post(
     "/refresh-stats",
     response_model=StatsRefreshResponse,
-    summary="Recompute and push network stats (called by Cloud Scheduler every 30s)",
+    summary="Recompute network stats (called by Cloud Scheduler every 30s)",
 )
 def refresh_stats(db: Session = Depends(get_db)):
     """
-    Recompute network KPIs from PostgreSQL and push to Firebase RTDB.
+    Recompute network KPIs from PostgreSQL.
     This invalidates the 30s cache and forces a fresh computation.
     """
     start = time.time()

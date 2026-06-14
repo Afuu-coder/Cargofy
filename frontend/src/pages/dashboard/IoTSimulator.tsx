@@ -9,6 +9,7 @@ import {
   getRoute,
   type Shipment, type RiskResult, type PreviewImpactResult,
 } from '../../lib/api';
+import { WhatsAppSetupModal, WhatsAppBadge } from '../../components/WhatsAppSetupModal';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string;
 
@@ -170,6 +171,10 @@ function SimulatorMap({ risk, state, progress, shipment, lat, lng }: {
     if (!mapContainer.current || mapRef.current || !MAPBOX_TOKEN) return;
     mapboxgl.accessToken = MAPBOX_TOKEN;
 
+    if (mapContainer.current) {
+      mapContainer.current.innerHTML = ''; // Ensure container is empty before initialization
+    }
+
     const map = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/dark-v11',
@@ -178,10 +183,11 @@ function SimulatorMap({ risk, state, progress, shipment, lat, lng }: {
       pitch: 45,
       attributionControl: false,
     });
+    
+    mapRef.current = map;
 
     map.on('load', () => {
       map.setFog({ color: 'rgb(4, 8, 18)', 'high-color': 'rgb(15, 30, 60)', 'horizon-blend': 0.08 });
-      mapRef.current = map;
       setMapLoaded(true);
     });
 
@@ -377,6 +383,7 @@ export function IoTSimulator() {
 
   const simRef   = useRef<ReturnType<typeof setInterval>>(undefined);
   const apiRef   = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
 
   const toast = (msg:string, type:'ok'|'warn'='ok') => {
     const id = Math.random().toString(36).slice(2);
@@ -391,7 +398,7 @@ export function IoTSimulator() {
 
   // Load saved scenarios from localStorage
   useEffect(()=>{
-    try { const s = JSON.parse(localStorage.getItem('axon_sim_scenarios')||'[]'); setSavedScenarios(s); } catch {}
+    try { const s = JSON.parse(localStorage.getItem('cargofy_sim_scenarios')||'[]'); setSavedScenarios(s); } catch {}
   },[]);
 
   // Compute risk whenever sim state changes
@@ -473,7 +480,7 @@ export function IoTSimulator() {
     const s: SavedScenario = { name:saveName.trim(), state:simState, ts:Date.now() };
     const updated = [s, ...savedScenarios.slice(0,9)];
     setSavedScenarios(updated);
-    localStorage.setItem('axon_sim_scenarios', JSON.stringify(updated));
+    localStorage.setItem('cargofy_sim_scenarios', JSON.stringify(updated));
     setSaveModal(false); setSaveName('');
     toast('💾 Scenario saved!');
   };
@@ -589,9 +596,20 @@ export function IoTSimulator() {
         </div>
       )}
 
+      {/* WhatsApp Setup Modal */}
+      {showWhatsAppModal && (
+        <WhatsAppSetupModal
+          onClose={() => setShowWhatsAppModal(false)}
+          onSuccess={(phone) => {
+            toast(`✅ WhatsApp alerts enabled for ${phone.slice(0,4)}****${phone.slice(-3)}`, 'ok');
+            setShowWhatsAppModal(false);
+          }}
+        />
+      )}
+
       {/* ── Top Nav ──────────────────────────────────────────────────────── */}
       <header className="shrink-0 h-13 bg-[#0A0D14] border-b border-[#1E2530] flex items-center px-4 gap-4 z-40 py-3">
-        <div className="text-[#4DD9AC] font-black text-xl tracking-tighter font-mono cursor-pointer" onClick={()=>navigate('/dashboard')}>AXON</div>
+        <div className="text-[#4DD9AC] font-black text-xl tracking-tighter font-mono cursor-pointer" onClick={()=>navigate('/dashboard')}>CARGOFY</div>
         <div className="h-5 w-px bg-[#1E2530]"/>
         <div className="text-sm text-[#A78BFA] flex items-center gap-2">
           <span>🎮</span> IoT Simulator
@@ -618,6 +636,7 @@ export function IoTSimulator() {
           <button onClick={resetSim} className="text-xs border border-[#1E2530] text-[#64748B] hover:text-white px-3 py-1.5 rounded transition-colors">🔄 Reset</button>
           {simRunning && <span className="font-mono text-xs text-[#64748B]">{fmtTime(simTime)}</span>}
         </div>
+        <WhatsAppBadge onClick={() => setShowWhatsAppModal(true)} />
         <button onClick={()=>setSaveModal(true)} className="text-xs border border-[#1E2530] text-[#64748B] hover:text-[#4DD9AC] px-3 py-1.5 rounded transition-colors">💾 Save</button>
         <button onClick={commitToShipment} className="text-xs bg-[#EF4444]/10 border border-[#EF4444]/30 text-[#F87171] hover:bg-[#EF4444]/20 px-3 py-1.5 rounded transition-colors">📡 Commit to Shipment</button>
         <button onClick={()=>navigate('/risk')} className="text-xs border border-[#1E2530] text-[#64748B] hover:text-white px-3 py-1.5 rounded transition-colors">← Risk Console</button>
